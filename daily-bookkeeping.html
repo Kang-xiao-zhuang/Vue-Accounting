@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Bookkeeping</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f4f6fb;
+      --card: #ffffff;
+      --primary: #4f6ef7;
+      --primary-dark: #3a55d9;
+      --income: #2ca87f;
+      --expense: #e25563;
+      --text: #2a2f45;
+      --muted: #8a90a6;
+      --border: #e8ebf3;
+    }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px 16px;
+    }
+    #app { max-width: 760px; margin: 0 auto; }
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+    .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+
+    .period-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+    .period-tabs button {
+      flex: 1; padding: 9px; border: 1px solid var(--border);
+      background: var(--card); border-radius: 9px; cursor: pointer;
+      font-size: 14px; font-weight: 600; color: var(--muted); transition: .15s;
+    }
+    .period-tabs button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+    .summary .card { text-align: center; }
+    .summary .label { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+    .summary .value { font-size: 22px; font-weight: 700; }
+    .value.income { color: var(--income); }
+    .value.expense { color: var(--expense); }
+    .value.balance { color: var(--primary); }
+
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 2px 12px rgba(40,50,90,0.05);
+    }
+
+    form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+    form .full { grid-column: 1 / -1; }
+    label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 5px; }
+    input, select {
+      width: 100%; padding: 10px 12px;
+      border: 1px solid var(--border); border-radius: 9px;
+      font-size: 15px; background: #fbfcfe; color: var(--text);
+    }
+    input:focus, select:focus { outline: none; border-color: var(--primary); }
+
+    .type-toggle { display: flex; gap: 8px; }
+    .type-toggle button {
+      flex: 1; padding: 10px; border: 1px solid var(--border);
+      background: #fbfcfe; border-radius: 9px; cursor: pointer;
+      font-size: 15px; font-weight: 600; color: var(--muted); transition: .15s;
+    }
+    .type-toggle button.active-expense { background: var(--expense); color: #fff; border-color: var(--expense); }
+    .type-toggle button.active-income { background: var(--income); color: #fff; border-color: var(--income); }
+
+    .btn-add {
+      grid-column: 1 / -1; padding: 12px; border: none;
+      background: var(--primary); color: #fff; border-radius: 9px;
+      font-size: 16px; font-weight: 600; cursor: pointer; transition: .15s;
+    }
+    .btn-add:hover { background: var(--primary-dark); }
+
+    .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px; flex-wrap: wrap; }
+    .list-header h2 { font-size: 17px; }
+    .filter { padding: 6px 10px; font-size: 13px; border-radius: 8px; border: 1px solid var(--border); }
+    .btn-export {
+      padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer;
+      border-radius: 8px; border: 1px solid var(--primary);
+      background: #eef1fe; color: var(--primary); transition: .15s;
+    }
+    .btn-export:hover:not(:disabled) { background: var(--primary); color: #fff; }
+    .btn-export:disabled { opacity: .5; cursor: not-allowed; }
+
+    .record {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 0; border-bottom: 1px solid var(--border);
+    }
+    .record:last-child { border-bottom: none; }
+    .icon {
+      width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 19px;
+      background: #f0f2fa;
+    }
+    .record .info { flex: 1; min-width: 0; }
+    .record .cat { font-weight: 600; font-size: 15px; }
+    .record .meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .record .amt { font-weight: 700; font-size: 16px; white-space: nowrap; }
+    .amt.income { color: var(--income); }
+    .amt.expense { color: var(--expense); }
+    .del { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; padding: 4px 8px; border-radius: 6px; }
+    .del:hover { color: var(--expense); background: #fdeef0; }
+
+    .empty { text-align: center; color: var(--muted); padding: 30px 0; font-size: 14px; }
+    .footer-tip { text-align: center; color: var(--muted); font-size: 12px; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h1>💰 Daily Bookkeeping</h1>
+    <p class="subtitle">{{ todayStr }} · {{ filteredRecords.length }} of {{ records.length }} records shown</p>
+
+    <div class="period-tabs">
+      <button :class="{ active: period === 'day' }" @click="period = 'day'">Day</button>
+      <button :class="{ active: period === 'week' }" @click="period = 'week'">Week</button>
+      <button :class="{ active: period === 'month' }" @click="period = 'month'">Month</button>
+      <button :class="{ active: period === 'all' }" @click="period = 'all'">All</button>
+    </div>
+    <p class="subtitle" style="margin-top:-8px;">{{ periodLabel }}</p>
+
+    <div class="summary">
+      <div class="card">
+        <div class="label">Income</div>
+        <div class="value income">${{ totalIncome.toLocaleString() }}</div>
+      </div>
+      <div class="card">
+        <div class="label">Expense</div>
+        <div class="value expense">${{ totalExpense.toLocaleString() }}</div>
+      </div>
+      <div class="card">
+        <div class="label">Balance</div>
+        <div class="value balance">${{ balance.toLocaleString() }}</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <form @submit.prevent="addRecord">
+        <div class="full">
+          <label>Type</label>
+          <div class="type-toggle">
+            <button type="button" :class="{ 'active-expense': form.type==='expense' }" @click="setType('expense')">Expense</button>
+            <button type="button" :class="{ 'active-income': form.type==='income' }" @click="setType('income')">Income</button>
+          </div>
+        </div>
+        <div>
+          <label>Category</label>
+          <select v-model="form.category">
+            <option v-for="c in categories[form.type]" :key="c.name" :value="c.name">{{ c.icon }} {{ c.name }}</option>
+          </select>
+        </div>
+        <div>
+          <label>Amount</label>
+          <input type="number" v-model.number="form.amount" min="0" step="0.01" placeholder="0" required>
+        </div>
+        <div>
+          <label>Date</label>
+          <input type="date" v-model="form.date">
+        </div>
+        <div>
+          <label>Note</label>
+          <input type="text" v-model="form.note" placeholder="Optional...">
+        </div>
+        <button type="submit" class="btn-add">＋ Add Record</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="list-header">
+        <h2>Records</h2>
+        <div style="display:flex; gap:8px;">
+          <button class="btn-export" @click="exportCSV" :disabled="filteredRecords.length === 0">⬇ Export CSV</button>
+          <select class="filter" v-model="filter">
+            <option value="all">All types</option>
+            <option value="expense">Expense only</option>
+            <option value="income">Income only</option>
+          </select>
+        </div>
+      </div>
+
+      <div v-if="filteredRecords.length === 0" class="empty">No records for this period. Start logging above!</div>
+
+      <div v-for="r in filteredRecords" :key="r.id" class="record">
+        <div class="icon">{{ iconFor(r) }}</div>
+        <div class="info">
+          <div class="cat">{{ r.category }}</div>
+          <div class="meta">{{ r.date }}<span v-if="r.note"> · {{ r.note }}</span></div>
+        </div>
+        <div class="amt" :class="r.type">{{ r.type === 'income' ? '+' : '-' }}${{ r.amount.toLocaleString() }}</div>
+        <button class="del" @click="removeRecord(r.id)">✕</button>
+      </div>
+    </div>
+
+    <p class="footer-tip">Data is saved automatically in your browser (localStorage)</p>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+
+    createApp({
+      data() {
+        const today = new Date().toISOString().slice(0, 10);
+        return {
+          today,
+          period: 'day',
+          filter: 'all',
+          categories: {
+            expense: [
+              { name: 'Dining', icon: '🍜' },
+              { name: 'Breakfast', icon: '🥐' },
+              { name: 'Drinks', icon: '🧋' },
+              { name: 'Transport', icon: '🚌' },
+              { name: 'Fuel', icon: '⛽' },
+              { name: 'Shopping', icon: '🛍️' },
+              { name: 'Clothing', icon: '👕' },
+              { name: 'Housing', icon: '🏠' },
+              { name: 'Utilities', icon: '💡' },
+              { name: 'Phone & Internet', icon: '📱' },
+              { name: 'Entertainment', icon: '🎮' },
+              { name: 'Travel', icon: '✈️' },
+              { name: 'Medical', icon: '💊' },
+              { name: 'Education', icon: '📚' },
+              { name: 'Beauty', icon: '💅' },
+              { name: 'Sports', icon: '🏃' },
+              { name: 'Pets', icon: '🐾' },
+              { name: 'Gifts', icon: '🎀' },
+              { name: 'Taxes & Fees', icon: '🧾' },
+              { name: 'Insurance', icon: '🛡️' },
+              { name: 'Family', icon: '👨‍👩‍👧' },
+              { name: 'Other', icon: '📦' },
+            ],
+            income: [
+              { name: 'Salary', icon: '💵' },
+              { name: 'Bonus', icon: '🎁' },
+              { name: 'Part-time', icon: '🧑‍💻' },
+              { name: 'Investment', icon: '📈' },
+              { name: 'Interest', icon: '🏦' },
+              { name: 'Refund', icon: '↩️' },
+              { name: 'Red Packet', icon: '🧧' },
+              { name: 'Rent', icon: '🏘️' },
+              { name: 'Other', icon: '📦' },
+            ],
+          },
+          form: {
+            type: 'expense',
+            category: 'Dining',
+            amount: null,
+            date: today,
+            note: '',
+          },
+          records: [],
+        };
+      },
+      computed: {
+        todayStr() {
+          return new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+        },
+        periodLabel() {
+          const t = new Date(this.today + 'T00:00:00');
+          if (this.period === 'day') {
+            return 'Today · ' + this.today;
+          } else if (this.period === 'week') {
+            const { start, end } = this.weekRange(t);
+            return 'This week · ' + this.fmt(start) + ' – ' + this.fmt(end);
+          } else if (this.period === 'month') {
+            return 'This month · ' + t.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+          }
+          return 'All time';
+        },
+        periodRecords() {
+          if (this.period === 'all') return this.records;
+          const t = new Date(this.today + 'T00:00:00');
+          if (this.period === 'day') {
+            return this.records.filter(r => r.date === this.today);
+          } else if (this.period === 'week') {
+            const { start, end } = this.weekRange(t);
+            const s = this.fmt(start), e = this.fmt(end);
+            return this.records.filter(r => r.date >= s && r.date <= e);
+          } else if (this.period === 'month') {
+            const prefix = this.today.slice(0, 7); // YYYY-MM
+            return this.records.filter(r => r.date.slice(0, 7) === prefix);
+          }
+          return this.records;
+        },
+        totalIncome() {
+          return this.periodRecords.filter(r => r.type === 'income').reduce((s, r) => s + r.amount, 0);
+        },
+        totalExpense() {
+          return this.periodRecords.filter(r => r.type === 'expense').reduce((s, r) => s + r.amount, 0);
+        },
+        balance() {
+          return this.totalIncome - this.totalExpense;
+        },
+        filteredRecords() {
+          const list = this.filter === 'all' ? this.periodRecords : this.periodRecords.filter(r => r.type === this.filter);
+          return [...list].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : b.id - a.id));
+        },
+      },
+      methods: {
+        weekRange(d) {
+          // Week starts on Monday
+          const day = (d.getDay() + 6) % 7; // 0 = Monday
+          const start = new Date(d);
+          start.setDate(d.getDate() - day);
+          const end = new Date(start);
+          end.setDate(start.getDate() + 6);
+          return { start, end };
+        },
+        fmt(d) {
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          return `${y}-${m}-${day}`;
+        },
+        setType(t) {
+          this.form.type = t;
+          this.form.category = this.categories[t][0].name;
+        },
+        iconFor(r) {
+          const c = this.categories[r.type].find(c => c.name === r.category);
+          return c ? c.icon : '📦';
+        },
+        addRecord() {
+          if (!this.form.amount || this.form.amount <= 0) return;
+          this.records.push({
+            id: Date.now(),
+            type: this.form.type,
+            category: this.form.category,
+            amount: this.form.amount,
+            date: this.form.date,
+            note: this.form.note.trim(),
+          });
+          this.form.amount = null;
+          this.form.note = '';
+          this.save();
+        },
+        exportCSV() {
+          if (this.filteredRecords.length === 0) return;
+          const headers = ['Date', 'Type', 'Category', 'Amount', 'Note'];
+          const typeLabel = { income: 'Income', expense: 'Expense' };
+          const escape = (v) => '"' + String(v).replace(/"/g, '""') + '"';
+          const rows = this.filteredRecords
+            .map(r => [r.date, typeLabel[r.type], r.category, r.amount, r.note].map(escape).join(','));
+          rows.push('');
+          rows.push([escape('Total Income'), escape(this.totalIncome)].join(','));
+          rows.push([escape('Total Expense'), escape(this.totalExpense)].join(','));
+          rows.push([escape('Balance'), escape(this.balance)].join(','));
+          const csv = '﻿' + headers.map(escape).join(',') + '\n' + rows.join('\n');
+          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'bookkeeping_' + this.period + '_' + this.today + '.csv';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        },
+        removeRecord(id) {
+          this.records = this.records.filter(r => r.id !== id);
+          this.save();
+        },
+        save() {
+          localStorage.setItem('bookkeeping-records', JSON.stringify(this.records));
+        },
+        load() {
+          const data = localStorage.getItem('bookkeeping-records');
+          if (data) {
+            try { this.records = JSON.parse(data); } catch (e) {}
+          }
+        },
+      },
+      mounted() {
+        this.load();
+      },
+    }).mount('#app');
+  </script>
+</body>
+</html>
