@@ -8,15 +8,16 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg: #f4f6fb;
-      --card: #ffffff;
-      --primary: #4f6ef7;
-      --primary-dark: #3a55d9;
-      --income: #2ca87f;
-      --expense: #e25563;
-      --text: #2a2f45;
+      --bg: #0f1320;
+      --card: #1a1f30;
+      --input: #232a40;
+      --primary: #6d86ff;
+      --primary-dark: #5670f0;
+      --income: #3dd6a3;
+      --expense: #ff6b7a;
+      --text: #e8ebf5;
       --muted: #8a90a6;
-      --border: #e8ebf3;
+      --border: #2c3450;
     }
     body {
       font-family: "Segoe UI", system-ui, sans-serif;
@@ -36,6 +37,20 @@
       font-size: 14px; font-weight: 600; color: var(--muted); transition: .15s;
     }
     .period-tabs button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    .nav-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: -8px 0 16px; }
+    .nav-arrow {
+      width: 38px; height: 38px; border-radius: 9px; flex-shrink: 0;
+      border: 1px solid var(--border); background: var(--card); color: var(--text);
+      font-size: 14px; cursor: pointer; transition: .15s;
+    }
+    .nav-arrow:hover { background: var(--input); border-color: var(--primary); }
+    .nav-label { flex: 1; text-align: center; font-size: 14px; color: var(--muted); display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .nav-today {
+      padding: 4px 10px; font-size: 12px; font-weight: 600; cursor: pointer;
+      border-radius: 7px; border: 1px solid var(--primary); background: var(--input); color: var(--primary);
+    }
+    .nav-today:hover { background: var(--primary); color: #fff; }
 
     .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
     .summary .card { text-align: center; }
@@ -58,14 +73,14 @@
     input, select {
       width: 100%; padding: 10px 12px;
       border: 1px solid var(--border); border-radius: 9px;
-      font-size: 15px; background: #fbfcfe; color: var(--text);
+      font-size: 15px; background: var(--input); color: var(--text);
     }
     input:focus, select:focus { outline: none; border-color: var(--primary); }
 
     .type-toggle { display: flex; gap: 8px; }
     .type-toggle button {
       flex: 1; padding: 10px; border: 1px solid var(--border);
-      background: #fbfcfe; border-radius: 9px; cursor: pointer;
+      background: var(--input); border-radius: 9px; cursor: pointer;
       font-size: 15px; font-weight: 600; color: var(--muted); transition: .15s;
     }
     .type-toggle button.active-expense { background: var(--expense); color: #fff; border-color: var(--expense); }
@@ -77,6 +92,11 @@
       font-size: 16px; font-weight: 600; cursor: pointer; transition: .15s;
     }
     .btn-add:hover { background: var(--primary-dark); }
+    .btn-cancel {
+      padding: 12px 18px; border: 1px solid var(--border); background: var(--input);
+      color: var(--muted); border-radius: 9px; font-size: 15px; font-weight: 600; cursor: pointer;
+    }
+    .btn-cancel:hover { color: var(--text); border-color: var(--muted); }
 
     .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px; flex-wrap: wrap; }
     .list-header h2 { font-size: 17px; }
@@ -84,10 +104,17 @@
     .btn-export {
       padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer;
       border-radius: 8px; border: 1px solid var(--primary);
-      background: #eef1fe; color: var(--primary); transition: .15s;
+      background: var(--input); color: var(--primary); transition: .15s;
     }
     .btn-export:hover:not(:disabled) { background: var(--primary); color: #fff; }
     .btn-export:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-clear {
+      padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
+      border-radius: 8px; border: 1px solid var(--border);
+      background: var(--card); color: var(--muted); transition: .15s;
+    }
+    .btn-clear:hover:not(:disabled) { background: var(--expense); color: #fff; border-color: var(--expense); }
+    .btn-clear:disabled { opacity: .5; cursor: not-allowed; }
 
     .record {
       display: flex; align-items: center; gap: 12px;
@@ -97,7 +124,7 @@
     .icon {
       width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center; font-size: 19px;
-      background: #f0f2fa;
+      background: var(--input);
     }
     .record .info { flex: 1; min-width: 0; }
     .record .cat { font-weight: 600; font-size: 15px; }
@@ -106,8 +133,34 @@
     .amt.income { color: var(--income); }
     .amt.expense { color: var(--expense); }
     .del { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; padding: 4px 8px; border-radius: 6px; }
-    .del:hover { color: var(--expense); background: #fdeef0; }
+    .del:hover { color: var(--expense); background: rgba(255,107,122,0.12); }
+    .edit { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; padding: 4px 8px; border-radius: 6px; }
+    .edit:hover, .edit.active { color: var(--primary); background: rgba(109,134,255,0.12); }
 
+    .chart-card { margin-bottom: 20px; }
+    .chart-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .chart-head h2 { font-size: 17px; }
+    .chart-toggle { display: flex; gap: 6px; }
+    .chart-toggle button {
+      padding: 5px 12px; font-size: 13px; font-weight: 600; cursor: pointer;
+      border-radius: 8px; border: 1px solid var(--border);
+      background: var(--input); color: var(--muted); transition: .15s;
+    }
+    .chart-toggle button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .chart-body { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+    .donut-wrap { position: relative; width: 180px; height: 180px; flex-shrink: 0; margin: 0 auto; }
+    .donut-center {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; pointer-events: none;
+    }
+    .donut-center .dc-label { font-size: 12px; color: var(--muted); }
+    .donut-center .dc-value { font-size: 20px; font-weight: 700; }
+    .legend { flex: 1; min-width: 200px; }
+    .legend-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 14px; }
+    .legend-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+    .legend-row .lg-cat { flex: 1; }
+    .legend-row .lg-pct { color: var(--muted); font-size: 13px; margin-left: 8px; }
+    .legend-row .lg-amt { font-weight: 600; white-space: nowrap; }
     .empty { text-align: center; color: var(--muted); padding: 30px 0; font-size: 14px; }
     .footer-tip { text-align: center; color: var(--muted); font-size: 12px; margin-top: 16px; }
   </style>
@@ -123,7 +176,15 @@
       <button :class="{ active: period === 'month' }" @click="period = 'month'">Month</button>
       <button :class="{ active: period === 'all' }" @click="period = 'all'">All</button>
     </div>
-    <p class="subtitle" style="margin-top:-8px;">{{ periodLabel }}</p>
+    <div class="nav-bar" v-if="period !== 'all'">
+      <button class="nav-arrow" @click="shift(-1)">◀</button>
+      <div class="nav-label">
+        <span>{{ periodLabel }}</span>
+        <button v-if="!isCurrentPeriod" class="nav-today" @click="goToday">Today</button>
+      </div>
+      <button class="nav-arrow" @click="shift(1)">▶</button>
+    </div>
+    <p class="subtitle" style="margin-top:-8px;" v-else>All time</p>
 
     <div class="summary">
       <div class="card">
@@ -167,8 +228,47 @@
           <label>Note</label>
           <input type="text" v-model="form.note" placeholder="Optional...">
         </div>
-        <button type="submit" class="btn-add">＋ Add Record</button>
+        <div class="full" style="display:flex; gap:10px;">
+          <button type="submit" class="btn-add" style="flex:1;">{{ editingId ? '✓ Update Record' : '＋ Add Record' }}</button>
+          <button type="button" v-if="editingId" class="btn-cancel" @click="cancelEdit">Cancel</button>
+        </div>
       </form>
+    </div>
+
+    <div class="card chart-card">
+      <div class="chart-head">
+        <h2>Breakdown by Category</h2>
+        <div class="chart-toggle">
+          <button :class="{ active: chartType === 'expense' }" @click="chartType = 'expense'">Expense</button>
+          <button :class="{ active: chartType === 'income' }" @click="chartType = 'income'">Income</button>
+        </div>
+      </div>
+      <div v-if="breakdown.length === 0" class="empty">No {{ chartType }} data for this period.</div>
+      <div v-else class="chart-body">
+        <div class="donut-wrap">
+          <svg viewBox="0 0 200 200" width="180" height="180">
+            <g transform="rotate(-90 100 100)">
+              <circle v-for="s in donutSlices" :key="s.category"
+                cx="100" cy="100" r="70" fill="none"
+                :stroke="s.color" stroke-width="30"
+                :stroke-dasharray="s.dash + ' ' + (circumference - s.dash)"
+                :stroke-dashoffset="s.offset" />
+            </g>
+          </svg>
+          <div class="donut-center">
+            <div class="dc-label">Total {{ chartType }}</div>
+            <div class="dc-value" :style="{ color: chartType === 'expense' ? 'var(--expense)' : 'var(--income)' }">${{ chartTotal.toLocaleString() }}</div>
+          </div>
+        </div>
+        <div class="legend">
+          <div class="legend-row" v-for="s in breakdown" :key="s.category">
+            <span class="legend-dot" :style="{ background: s.color }"></span>
+            <span class="lg-cat">{{ s.icon }} {{ s.category }}</span>
+            <span class="lg-pct">{{ s.percent.toFixed(0) }}%</span>
+            <span class="lg-amt">${{ s.amount.toLocaleString() }}</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="card">
@@ -193,10 +293,14 @@
           <div class="meta">{{ r.date }}<span v-if="r.note"> · {{ r.note }}</span></div>
         </div>
         <div class="amt" :class="r.type">{{ r.type === 'income' ? '+' : '-' }}${{ r.amount.toLocaleString() }}</div>
-        <button class="del" @click="removeRecord(r.id)">✕</button>
+        <button class="edit" :class="{ active: editingId === r.id }" @click="startEdit(r)" title="Edit">✎</button>
+        <button class="del" @click="removeRecord(r.id)" title="Delete">✕</button>
       </div>
     </div>
 
+    <div style="text-align:center; margin-top:16px;">
+      <button class="btn-clear" @click="clearAll" :disabled="records.length === 0">🗑 Clear all data</button>
+    </div>
     <p class="footer-tip">Data is saved automatically in your browser (localStorage)</p>
   </div>
 
@@ -208,8 +312,13 @@
         const today = new Date().toISOString().slice(0, 10);
         return {
           today,
+          anchor: today,
+          editingId: null,
           period: 'day',
           filter: 'all',
+          chartType: 'expense',
+          circumference: 2 * Math.PI * 70,
+          palette: ['#6d86ff', '#3dd6a3', '#ff6b7a', '#ffb84d', '#a07bff', '#4dd2ff', '#ff8fcf', '#ffe066', '#5fd06f', '#ff9a6b', '#7be0d0', '#c98aff'],
           categories: {
             expense: [
               { name: 'Dining', icon: '🍜' },
@@ -262,28 +371,39 @@
           return new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
         },
         periodLabel() {
-          const t = new Date(this.today + 'T00:00:00');
+          const t = new Date(this.anchor + 'T00:00:00');
           if (this.period === 'day') {
-            return 'Today · ' + this.today;
+            const pretty = t.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+            return (this.anchor === this.today ? 'Today · ' : '') + pretty;
           } else if (this.period === 'week') {
             const { start, end } = this.weekRange(t);
-            return 'This week · ' + this.fmt(start) + ' – ' + this.fmt(end);
+            return this.fmt(start) + ' – ' + this.fmt(end);
           } else if (this.period === 'month') {
-            return 'This month · ' + t.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+            return t.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
           }
           return 'All time';
         },
+        isCurrentPeriod() {
+          if (this.period === 'all') return true;
+          if (this.period === 'month') return this.anchor.slice(0, 7) === this.today.slice(0, 7);
+          if (this.period === 'week') {
+            const a = this.weekRange(new Date(this.anchor + 'T00:00:00'));
+            const n = this.weekRange(new Date(this.today + 'T00:00:00'));
+            return this.fmt(a.start) === this.fmt(n.start);
+          }
+          return this.anchor === this.today;
+        },
         periodRecords() {
           if (this.period === 'all') return this.records;
-          const t = new Date(this.today + 'T00:00:00');
+          const t = new Date(this.anchor + 'T00:00:00');
           if (this.period === 'day') {
-            return this.records.filter(r => r.date === this.today);
+            return this.records.filter(r => r.date === this.anchor);
           } else if (this.period === 'week') {
             const { start, end } = this.weekRange(t);
             const s = this.fmt(start), e = this.fmt(end);
             return this.records.filter(r => r.date >= s && r.date <= e);
           } else if (this.period === 'month') {
-            const prefix = this.today.slice(0, 7); // YYYY-MM
+            const prefix = this.anchor.slice(0, 7); // YYYY-MM
             return this.records.filter(r => r.date.slice(0, 7) === prefix);
           }
           return this.records;
@@ -300,6 +420,29 @@
         filteredRecords() {
           const list = this.filter === 'all' ? this.periodRecords : this.periodRecords.filter(r => r.type === this.filter);
           return [...list].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : b.id - a.id));
+        },
+        chartTotal() {
+          return this.periodRecords.filter(r => r.type === this.chartType).reduce((s, r) => s + r.amount, 0);
+        },
+        breakdown() {
+          const map = {};
+          this.periodRecords.filter(r => r.type === this.chartType).forEach(r => {
+            map[r.category] = (map[r.category] || 0) + r.amount;
+          });
+          const total = this.chartTotal || 1;
+          return Object.keys(map)
+            .map(cat => ({ category: cat, amount: map[cat], percent: (map[cat] / total) * 100, icon: this.iconFor({ type: this.chartType, category: cat }) }))
+            .sort((a, b) => b.amount - a.amount)
+            .map((s, i) => ({ ...s, color: this.palette[i % this.palette.length] }));
+        },
+        donutSlices() {
+          let cumulative = 0;
+          return this.breakdown.map(s => {
+            const dash = (s.percent / 100) * this.circumference;
+            const slice = { ...s, dash, offset: -cumulative };
+            cumulative += dash;
+            return slice;
+          });
         },
       },
       methods: {
@@ -326,19 +469,61 @@
           const c = this.categories[r.type].find(c => c.name === r.category);
           return c ? c.icon : '📦';
         },
+        shift(dir) {
+          const t = new Date(this.anchor + 'T00:00:00');
+          if (this.period === 'day') {
+            t.setDate(t.getDate() + dir);
+          } else if (this.period === 'week') {
+            t.setDate(t.getDate() + dir * 7);
+          } else if (this.period === 'month') {
+            t.setMonth(t.getMonth() + dir);
+          }
+          this.anchor = this.fmt(t);
+        },
+        goToday() {
+          this.anchor = this.today;
+        },
         addRecord() {
           if (!this.form.amount || this.form.amount <= 0) return;
-          this.records.push({
-            id: Date.now(),
-            type: this.form.type,
-            category: this.form.category,
-            amount: this.form.amount,
-            date: this.form.date,
-            note: this.form.note.trim(),
-          });
+          if (this.editingId) {
+            const rec = this.records.find(r => r.id === this.editingId);
+            if (rec) {
+              rec.type = this.form.type;
+              rec.category = this.form.category;
+              rec.amount = this.form.amount;
+              rec.date = this.form.date;
+              rec.note = this.form.note.trim();
+            }
+            this.editingId = null;
+          } else {
+            this.records.push({
+              id: Date.now(),
+              type: this.form.type,
+              category: this.form.category,
+              amount: this.form.amount,
+              date: this.form.date,
+              note: this.form.note.trim(),
+            });
+          }
           this.form.amount = null;
           this.form.note = '';
+          this.form.date = this.today;
           this.save();
+        },
+        startEdit(r) {
+          this.editingId = r.id;
+          this.form.type = r.type;
+          this.form.category = r.category;
+          this.form.amount = r.amount;
+          this.form.date = r.date;
+          this.form.note = r.note;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        },
+        cancelEdit() {
+          this.editingId = null;
+          this.form.amount = null;
+          this.form.note = '';
+          this.form.date = this.today;
         },
         exportCSV() {
           if (this.filteredRecords.length === 0) return;
@@ -363,8 +548,16 @@
           URL.revokeObjectURL(url);
         },
         removeRecord(id) {
+          if (this.editingId === id) this.cancelEdit();
           this.records = this.records.filter(r => r.id !== id);
           this.save();
+        },
+        clearAll() {
+          if (this.records.length === 0) return;
+          if (confirm('Delete ALL records? This cannot be undone.')) {
+            this.records = [];
+            this.save();
+          }
         },
         save() {
           localStorage.setItem('bookkeeping-records', JSON.stringify(this.records));
