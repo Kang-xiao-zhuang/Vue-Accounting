@@ -1,0 +1,25 @@
+server:
+  port: 8030
+
+spring:
+  datasource:
+    # MySQL 5.5 — driver class is com.mysql.jdbc.Driver (Connector/J 5.1.x)
+    url: jdbc:mysql://localhost:3306/bookkeeping?useUnicode=true&characterEncoding=utf8&useSSL=false
+    username: root
+    password: root            # <-- change to your MySQL password
+    driver-class-name: com.mysql.jdbc.Driver
+
+  jpa:
+    hibernate:
+      # 'update' auto-creates / migrates the table. Use 'validate' or 'none' in production.
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL55Dialect
+        format_sql: true
+    open-in-view: false
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
