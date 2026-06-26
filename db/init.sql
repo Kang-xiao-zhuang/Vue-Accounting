@@ -28,3 +28,21 @@ CREATE TABLE IF NOT EXISTS account_record (
   PRIMARY KEY (id),
   KEY idx_account_record_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS habit (
+  id         BIGINT      NOT NULL AUTO_INCREMENT,
+  user_id    BIGINT,
+  name       VARCHAR(64) NOT NULL,
+  color      VARCHAR(16),
+  created_at DATETIME,
+  PRIMARY KEY (id),
+  KEY idx_habit_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS habit_checkin (
+  id           BIGINT NOT NULL AUTO_INCREMENT,
+  habit_id     BIGINT NOT NULL,
+  checkin_date DATE   NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_habit_date (habit_id, checkin_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

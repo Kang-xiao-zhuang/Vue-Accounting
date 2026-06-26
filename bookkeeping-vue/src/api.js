@@ -33,5 +33,22 @@ export default {
   },
   deleteUser(id) {
     return http.delete(`/users/${id}`)
+  },
+
+  // ---- habits ----
+  listHabits(userId) {
+    return http.get('/habits', { params: { userId } }).then(r => r.data)
+  },
+  createHabit(habit) {
+    return http.post('/habits', habit).then(r => r.data)
+  },
+  updateHabit(id, habit) {
+    return http.put(`/habits/${id}`, habit).then(r => r.data)
+  },
+  deleteHabit(id) {
+    return http.delete(`/habits/${id}`)
+  },
+  toggleHabit(id, date) {
+    return http.post(`/habits/${id}/toggle`, null, { params: { date } }).then(r => r.data)
   }
 }

@@ -53,7 +53,7 @@ export default {
 
 .hint { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
 
-.cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 10px; }
 .cat-btn {
   background: var(--card); border: 1px solid var(--border); border-radius: 14px;
   padding: 12px 4px; cursor: pointer; color: var(--text);

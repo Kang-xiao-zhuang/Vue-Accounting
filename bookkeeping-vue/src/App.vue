@@ -2,7 +2,10 @@
   <div class="phone">
     <header class="app-header">
       <h1>💰 Bookkeeping</h1>
-      <span class="active-user">👤 {{ activeUserName }}</span>
+      <div class="header-right">
+        <button class="theme-btn" @click="cycleTheme" :title="'Theme: ' + themeName">{{ themeIcon }}</button>
+        <span class="active-user">👤 {{ activeUserName }}</span>
+      </div>
     </header>
 
     <main class="app-content">
@@ -20,6 +23,14 @@
         v-show="tab === 'add'"
         :has-user="!!activeUserId"
         @pick="openSheetForCategory"
+      />
+
+      <HabitsView
+        v-show="tab === 'habits'"
+        :habits="habits"
+        :today="today"
+        :has-user="!!activeUserId"
+        @add="addHabit" @update="updateHabit" @delete="deleteHabit" @toggle="toggleHabit"
       />
 
       <StatsView
@@ -58,10 +69,11 @@ import RecordsView from './views/RecordsView.vue'
 import AddView from './views/AddView.vue'
 import StatsView from './views/StatsView.vue'
 import ProfileView from './views/ProfileView.vue'
+import HabitsView from './views/HabitsView.vue'
 
 export default {
   name: 'App',
-  components: { TabBar, EntrySheet, RecordsView, AddView, StatsView, ProfileView },
+  components: { TabBar, EntrySheet, RecordsView, AddView, StatsView, ProfileView, HabitsView },
   data() {
     const today = todayString()
     return {
@@ -70,13 +82,29 @@ export default {
       period: 'day',
       tab: 'records',
       records: [],
+      habits: [],
       users: [],
       activeUserId: null,
       error: '',
-      sheet: { open: false, editingId: null, initial: null }
+      sheet: { open: false, editingId: null, initial: null },
+      theme: 'dark',
+      themes: [
+        { key: 'light', name: 'Light', icon: '☀️' },
+        { key: 'dark', name: 'Dark', icon: '🌙' },
+        { key: 'duotone', name: 'Duotone', icon: '🎨' }
+      ]
     }
   },
   computed: {
+    currentTheme() {
+      return this.themes.find(t => t.key === this.theme) || this.themes[1]
+    },
+    themeIcon() {
+      return this.currentTheme.icon
+    },
+    themeName() {
+      return this.currentTheme.name
+    },
     activeUserName() {
       const u = this.users.find(u => u.id === this.activeUserId)
       return u ? u.name : 'No user'
@@ -208,6 +236,63 @@ export default {
       }
     },
 
+    // ---- habits ----
+    async loadHabits() {
+      if (!this.activeUserId) {
+        this.habits = []
+        return
+      }
+      try {
+        this.habits = await api.listHabits(this.activeUserId)
+      } catch (e) {
+        this.error = 'Cannot reach the backend at /api. Make sure the Spring Boot server is running on port 8030.'
+      }
+    },
+    async addHabit({ name, color }) {
+      if (!this.activeUserId) {
+        this.error = 'Add a user on the “Me” tab first.'
+        this.tab = 'me'
+        return
+      }
+      try {
+        await api.createHabit({ name, color, userId: this.activeUserId })
+        await this.loadHabits()
+      } catch (e) {
+        this.error = this.apiError(e) || 'Could not add habit.'
+      }
+    },
+    async updateHabit({ id, name, color }) {
+      try {
+        await api.updateHabit(id, { name, color })
+        await this.loadHabits()
+      } catch (e) {
+        this.error = this.apiError(e) || 'Could not update habit.'
+      }
+    },
+    async deleteHabit(habit) {
+      if (!confirm(`Delete habit "${habit.name}" and all its check-ins?`)) return
+      try {
+        await api.deleteHabit(habit.id)
+        await this.loadHabits()
+      } catch (e) {
+        this.error = this.apiError(e) || 'Could not delete habit.'
+      }
+    },
+    async toggleHabit({ id, date }) {
+      const habit = this.habits.find(h => h.id === id)
+      if (!habit) return
+      // Optimistic update for instant feedback.
+      const i = habit.checkins.indexOf(date)
+      if (i >= 0) habit.checkins.splice(i, 1)
+      else habit.checkins.push(date)
+      try {
+        await api.toggleHabit(id, date)
+      } catch (e) {
+        this.error = 'Check-in failed. Reverting.'
+        await this.loadHabits()
+      }
+    },
+
     // ---- users (CRUD) ----
     async loadUsers() {
       try {
@@ -230,6 +315,7 @@ export default {
       this.activeUserId = id
       localStorage.setItem('bookkeeping-active-user', String(id))
       await this.load()
+      await this.loadHabits()
       this.tab = 'records'
     },
     async addUser(name) {
@@ -259,17 +345,35 @@ export default {
         }
         await this.loadUsers()
         await this.load()
+        await this.loadHabits()
       } catch (e) {
         this.error = this.apiError(e) || 'Could not delete user.'
       }
     },
     apiError(e) {
       return e && e.response && e.response.data && e.response.data.message
+    },
+
+    // ---- theme ----
+    applyTheme() {
+      document.documentElement.setAttribute('data-theme', this.theme)
+      localStorage.setItem('bookkeeping-theme', this.theme)
+    },
+    cycleTheme() {
+      const i = this.themes.findIndex(t => t.key === this.theme)
+      this.theme = this.themes[(i + 1) % this.themes.length].key
+      this.applyTheme()
     }
   },
   async mounted() {
+    const savedTheme = localStorage.getItem('bookkeeping-theme')
+    if (savedTheme && this.themes.some(t => t.key === savedTheme)) {
+      this.theme = savedTheme
+    }
+    this.applyTheme()
     await this.loadUsers()
     await this.load()
+    await this.loadHabits()
     if (this.users.length === 0) this.tab = 'me'
   }
 }

@@ -24,6 +24,7 @@ export default {
       tabs: [
         { key: 'records', icon: '🧾', label: 'Records' },
         { key: 'add', icon: '➕', label: 'Add' },
+        { key: 'habits', icon: '🔥', label: 'Habits' },
         { key: 'stats', icon: '📊', label: 'Stats' },
         { key: 'me', icon: '👤', label: 'Me' }
       ]
