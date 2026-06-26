@@ -45,7 +45,7 @@ public class AccountRecordController {
     }
 
     @DeleteMapping
-    public void deleteAll() {
-        service.deleteAll();
+    public void deleteAll(@RequestParam(required = false) Long userId) {
+        service.deleteAll(userId);
     }
 }

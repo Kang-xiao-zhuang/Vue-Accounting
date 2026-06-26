@@ -1,0 +1,33 @@
+# ---- Maven / Java ----
+target/
+*.class
+*.jar
+*.war
+!.mvn/wrapper/maven-wrapper.jar
+dependency-reduced-pom.xml
+
+# ---- Spring Boot ----
+*.log
+application-local.yml
+application-local.properties
+
+# ---- IDE ----
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+nbproject/
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+
+# ---- Nested frontend (bookkeeping-vue) ----
+bookkeeping-vue/node_modules/
+bookkeeping-vue/dist/
+bookkeeping-vue/.vite/
+bookkeeping-vue/*.local

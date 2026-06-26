@@ -4,6 +4,7 @@ import com.bookkeeping.entity.AccountRecord;
 import com.bookkeeping.repository.AccountRecordRepository;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
@@ -48,7 +49,12 @@ public class AccountRecordService {
         repository.deleteById(id);
     }
 
-    public void deleteAll() {
-        repository.deleteAllInBatch();
+    @Transactional
+    public void deleteAll(Long userId) {
+        if (userId != null) {
+            repository.deleteByUserId(userId);
+        } else {
+            repository.deleteAllInBatch();
+        }
     }
 }

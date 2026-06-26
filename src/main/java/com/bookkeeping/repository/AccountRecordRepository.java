@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface AccountRecordRepository extends JpaRepository<AccountRecord, Long> {
     List<AccountRecord> findByUserId(Long userId, Sort sort);
+
+    long deleteByUserId(Long userId);
 }
