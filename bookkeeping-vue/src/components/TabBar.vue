@@ -22,9 +22,11 @@ export default {
   data() {
     return {
       tabs: [
-        { key: 'records', icon: '🧾', label: 'Records' },
         { key: 'add', icon: '➕', label: 'Add' },
+        { key: 'records', icon: '🧾', label: 'Records' },
         { key: 'habits', icon: '🔥', label: 'Habits' },
+        { key: 'todos', icon: '📋', label: 'Daily' },
+        { key: 'timer', icon: '⏲️', label: 'Timer' },
         { key: 'stats', icon: '📊', label: 'Stats' },
         { key: 'me', icon: '👤', label: 'Me' }
       ]

@@ -50,5 +50,22 @@ export default {
   },
   toggleHabit(id, date) {
     return http.post(`/habits/${id}/toggle`, null, { params: { date } }).then(r => r.data)
+  },
+
+  // ---- todos (daily checklist) ----
+  listTodos(userId) {
+    return http.get('/todos', { params: { userId } }).then(r => r.data)
+  },
+  createTodo(todo) {
+    return http.post('/todos', todo).then(r => r.data)
+  },
+  updateTodo(id, todo) {
+    return http.put(`/todos/${id}`, todo).then(r => r.data)
+  },
+  toggleTodo(id) {
+    return http.post(`/todos/${id}/toggle`).then(r => r.data)
+  },
+  deleteTodo(id) {
+    return http.delete(`/todos/${id}`)
   }
 }

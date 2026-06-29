@@ -1,6 +1,6 @@
 -- Run this once in MySQL 5.5 to create the database.
--- The `account_record` table is created automatically by Hibernate (ddl-auto: update),
--- but the CREATE TABLE below is provided if you prefer to create it manually.
+-- All tables are created automatically by Hibernate (ddl-auto: update),
+-- but the CREATE TABLE statements below are provided if you prefer to create them manually.
 
 CREATE DATABASE IF NOT EXISTS bookkeeping
   DEFAULT CHARACTER SET utf8
@@ -45,4 +45,17 @@ CREATE TABLE IF NOT EXISTS habit_checkin (
   checkin_date DATE   NOT NULL,
   PRIMARY KEY (id),
   UNIQUE KEY uk_habit_date (habit_id, checkin_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Daily checklist (todo) items. The text column is named `content`
+-- because `text` is a reserved word in MySQL.
+CREATE TABLE IF NOT EXISTS todo_item (
+  id         BIGINT       NOT NULL AUTO_INCREMENT,
+  user_id    BIGINT,
+  todo_date  DATE         NOT NULL,
+  content    VARCHAR(255) NOT NULL,
+  done       TINYINT(1)   NOT NULL DEFAULT 0,
+  created_at DATETIME,
+  PRIMARY KEY (id),
+  KEY idx_todo_user_date (user_id, todo_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

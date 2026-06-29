@@ -1,7 +1,11 @@
 <template>
   <div class="card habit-card">
     <div class="hc-top">
-      <div class="hc-stats">🔥 {{ currentStreak }} · ✅ {{ total }}</div>
+      <div class="hc-stats">
+        <span class="stat" :class="{ hot: currentStreak > 0 }" :title="'Current streak'">🔥 {{ currentStreak }}<span class="stat-unit">{{ currentStreak === 1 ? ' day' : ' days' }}</span></span>
+        <span class="stat" :title="'Longest streak'">🏆 {{ longestStreak }} best</span>
+        <span class="stat" :title="'Total check-ins'">✅ {{ total }}</span>
+      </div>
       <div class="hc-actions">
         <button class="icon-btn" @click="$emit('edit')" title="Edit">✎</button>
         <button class="icon-btn danger" @click="$emit('delete')" title="Delete">🗑</button>
@@ -79,6 +83,21 @@ export default {
       }
       return streak
     },
+    longestStreak() {
+      // Longest run of consecutive days across all check-ins.
+      const dates = (this.habit.checkins || []).slice().sort()
+      if (dates.length === 0) return 0
+      let best = 1, run = 1
+      for (let i = 1; i < dates.length; i++) {
+        const prev = new Date(dates[i - 1] + 'T00:00:00')
+        const cur = new Date(dates[i] + 'T00:00:00')
+        const diff = Math.round((cur - prev) / 86400000)
+        if (diff === 0) continue       // duplicate date, ignore
+        run = diff === 1 ? run + 1 : 1 // consecutive extends the run, otherwise reset
+        if (run > best) best = run
+      }
+      return best
+    },
     weeks() {
       const set = this.checkinSet
       const today = new Date(this.today + 'T00:00:00')
@@ -117,7 +136,13 @@ export default {
 .habit-card { margin-bottom: 14px; }
 
 .hc-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-.hc-stats { font-size: 12px; color: var(--muted); }
+.hc-stats { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+.hc-stats .stat {
+  display: inline-flex; align-items: baseline; gap: 2px;
+  background: var(--input); padding: 3px 8px; border-radius: 999px; white-space: nowrap;
+}
+.hc-stats .stat.hot { color: var(--text); font-weight: 700; }
+.hc-stats .stat-unit { font-size: 11px; opacity: .7; }
 .hc-actions { display: flex; gap: 2px; }
 .icon-btn {
   background: none; border: none; color: var(--muted); cursor: pointer;

@@ -33,6 +33,15 @@
         @add="addHabit" @update="updateHabit" @delete="deleteHabit" @toggle="toggleHabit"
       />
 
+      <TodosView
+        v-show="tab === 'todos'"
+        :todos="todosForDay" :label="todoDateLabel" :is-today="isTodayTodo" :has-user="!!activeUserId"
+        @add="addTodo" @toggle="toggleTodo" @update="updateTodo" @remove="removeTodo"
+        @shift="shiftTodo" @today="todayTodo"
+      />
+
+      <TimerView v-show="tab === 'timer'" />
+
       <StatsView
         v-show="tab === 'stats'"
         :period="period" :period-label="periodLabel" :is-current="isCurrentPeriod"
@@ -70,19 +79,23 @@ import AddView from './views/AddView.vue'
 import StatsView from './views/StatsView.vue'
 import ProfileView from './views/ProfileView.vue'
 import HabitsView from './views/HabitsView.vue'
+import TimerView from './views/TimerView.vue'
+import TodosView from './views/TodosView.vue'
 
 export default {
   name: 'App',
-  components: { TabBar, EntrySheet, RecordsView, AddView, StatsView, ProfileView, HabitsView },
+  components: { TabBar, EntrySheet, RecordsView, AddView, StatsView, ProfileView, HabitsView, TimerView, TodosView },
   data() {
     const today = todayString()
     return {
       today,
       anchor: today,
+      todoAnchor: today,
       period: 'day',
       tab: 'records',
       records: [],
       habits: [],
+      todos: [],
       users: [],
       activeUserId: null,
       error: '',
@@ -155,6 +168,18 @@ export default {
     },
     balance() {
       return this.totalIncome - this.totalExpense
+    },
+    // ---- todos ----
+    isTodayTodo() {
+      return this.todoAnchor === this.today
+    },
+    todoDateLabel() {
+      const t = new Date(this.todoAnchor + 'T00:00:00')
+      const pretty = t.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
+      return (this.isTodayTodo ? 'Today · ' : '') + pretty
+    },
+    todosForDay() {
+      return this.todos.filter(t => t.date === this.todoAnchor)
     }
   },
   methods: {
@@ -293,6 +318,64 @@ export default {
       }
     },
 
+    // ---- todos (daily checklist) ----
+    async loadTodos() {
+      if (!this.activeUserId) {
+        this.todos = []
+        return
+      }
+      try {
+        this.todos = await api.listTodos(this.activeUserId)
+      } catch (e) {
+        this.error = 'Cannot reach the backend at /api. Make sure the Spring Boot server is running on port 8030.'
+      }
+    },
+    shiftTodo(dir) {
+      const t = new Date(this.todoAnchor + 'T00:00:00')
+      t.setDate(t.getDate() + dir)
+      this.todoAnchor = fmt(t)
+    },
+    todayTodo() { this.todoAnchor = this.today },
+    async addTodo(text) {
+      if (!this.activeUserId) {
+        this.error = 'Add a user on the “Me” tab first.'
+        this.tab = 'me'
+        return
+      }
+      try {
+        await api.createTodo({ text, date: this.todoAnchor, userId: this.activeUserId })
+        await this.loadTodos()
+      } catch (e) {
+        this.error = this.apiError(e) || 'Could not add task.'
+      }
+    },
+    async toggleTodo(id) {
+      const t = this.todos.find(x => x.id === id)
+      if (t) t.done = !t.done // optimistic
+      try {
+        await api.toggleTodo(id)
+      } catch (e) {
+        this.error = 'Update failed. Reverting.'
+        await this.loadTodos()
+      }
+    },
+    async updateTodo({ id, text }) {
+      try {
+        await api.updateTodo(id, { text })
+        await this.loadTodos()
+      } catch (e) {
+        this.error = this.apiError(e) || 'Could not update task.'
+      }
+    },
+    async removeTodo(id) {
+      try {
+        await api.deleteTodo(id)
+        await this.loadTodos()
+      } catch (e) {
+        this.error = 'Delete failed.'
+      }
+    },
+
     // ---- users (CRUD) ----
     async loadUsers() {
       try {
@@ -316,6 +399,7 @@ export default {
       localStorage.setItem('bookkeeping-active-user', String(id))
       await this.load()
       await this.loadHabits()
+      await this.loadTodos()
       this.tab = 'records'
     },
     async addUser(name) {
@@ -346,6 +430,7 @@ export default {
         await this.loadUsers()
         await this.load()
         await this.loadHabits()
+        await this.loadTodos()
       } catch (e) {
         this.error = this.apiError(e) || 'Could not delete user.'
       }
@@ -374,6 +459,7 @@ export default {
     await this.loadUsers()
     await this.load()
     await this.loadHabits()
+    await this.loadTodos()
     if (this.users.length === 0) this.tab = 'me'
   }
 }
