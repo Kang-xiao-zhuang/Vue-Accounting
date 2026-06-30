@@ -16,6 +16,7 @@ public class HabitDto {
     private Long id;
     private Long userId;
     private String name;
+    private String icon;
     private String color;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -27,6 +28,7 @@ public class HabitDto {
         this.id = habit.getId();
         this.userId = habit.getUserId();
         this.name = habit.getName();
+        this.icon = habit.getIcon();
         this.color = habit.getColor();
         this.createdAt = habit.getCreatedAt();
         this.checkins = checkins;

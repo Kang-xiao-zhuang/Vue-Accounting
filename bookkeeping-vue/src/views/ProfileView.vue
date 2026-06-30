@@ -1,6 +1,9 @@
 <template>
   <div>
-    <h2 class="view-title">Account</h2>
+    <div class="more-subhead">
+      <button class="page-back" @click="$router.push('/more')" aria-label="Back to More">‹</button>
+      <h2 class="view-title">Account</h2>
+    </div>
 
     <div class="card account-card">
       <span class="avatar">{{ initial }}</span>

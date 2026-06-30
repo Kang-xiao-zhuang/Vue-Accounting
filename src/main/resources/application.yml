@@ -10,6 +10,9 @@ spring:
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.jdbc.Driver
+    hikari:
+      # Force the session charset to utf8mb4 so 4-byte emoji can be inserted.
+      connection-init-sql: SET NAMES utf8mb4
 
   jackson:
     serialization:

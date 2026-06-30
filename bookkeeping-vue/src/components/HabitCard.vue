@@ -12,7 +12,8 @@
       </div>
     </div>
 
-    <div class="grid-scroll">
+    <!-- ===== Grid (contribution heatmap) ===== -->
+    <div v-if="view === 'grid'" class="grid-scroll">
       <div class="grid">
         <div class="col" v-for="(col, ci) in weeks" :key="ci">
           <div
@@ -28,9 +29,44 @@
       </div>
     </div>
 
+    <!-- ===== Ring (last 30 days completion) ===== -->
+    <div v-else-if="view === 'ring'" class="ring-wrap">
+      <svg class="ring" viewBox="0 0 140 140">
+        <circle class="ring-track" cx="70" cy="70" r="54" fill="none" stroke-width="12" />
+        <circle
+          class="ring-prog" cx="70" cy="70" r="54" fill="none" stroke-width="12" stroke-linecap="round"
+          :stroke="habit.color"
+          :stroke-dasharray="ringC"
+          :stroke-dashoffset="ringC * (1 - ring.pct / 100)"
+          transform="rotate(-90 70 70)"
+        />
+      </svg>
+      <div class="ring-center">
+        <div class="ring-pct">{{ ring.pct }}%</div>
+        <div class="ring-sub">{{ ring.done }}/30 days</div>
+      </div>
+    </div>
+
+    <!-- ===== Week (7 circles) ===== -->
+    <div v-else class="week-row">
+      <button
+        v-for="d in weekDays"
+        :key="d.date"
+        class="wk"
+        :class="{ checked: d.checked, today: d.today, future: d.future }"
+        :style="d.checked ? { background: habit.color, borderColor: habit.color } : null"
+        :disabled="d.future"
+        :title="d.date"
+        @click="!d.future && $emit('toggle', d.date)"
+      >
+        <span class="wk-lbl">{{ d.label }}</span>
+        <span class="wk-num">{{ d.dayNum }}</span>
+      </button>
+    </div>
+
     <div class="hc-bottom">
       <div class="hc-name">
-        <span class="hc-dot" :style="{ background: habit.color }"></span>
+        <span class="hc-icon" :style="{ background: habit.color }">{{ habit.icon || '🎯' }}</span>
         <span class="hc-name-text">{{ habit.name }}</span>
       </div>
       <button
@@ -53,9 +89,13 @@ export default {
   name: 'HabitCard',
   props: {
     habit: { type: Object, required: true },
-    today: { type: String, required: true }
+    today: { type: String, required: true },
+    view: { type: String, default: 'grid' } // grid | ring | week
   },
   emits: ['toggle', 'edit', 'delete'],
+  data() {
+    return { ringC: 2 * Math.PI * 54 }
+  },
   computed: {
     checkinSet() {
       return new Set(this.habit.checkins || [])
@@ -84,7 +124,6 @@ export default {
       return streak
     },
     longestStreak() {
-      // Longest run of consecutive days across all check-ins.
       const dates = (this.habit.checkins || []).slice().sort()
       if (dates.length === 0) return 0
       let best = 1, run = 1
@@ -92,11 +131,38 @@ export default {
         const prev = new Date(dates[i - 1] + 'T00:00:00')
         const cur = new Date(dates[i] + 'T00:00:00')
         const diff = Math.round((cur - prev) / 86400000)
-        if (diff === 0) continue       // duplicate date, ignore
-        run = diff === 1 ? run + 1 : 1 // consecutive extends the run, otherwise reset
+        if (diff === 0) continue
+        run = diff === 1 ? run + 1 : 1
         if (run > best) best = run
       }
       return best
+    },
+    ring() {
+      const set = this.checkinSet
+      const today = new Date(this.today + 'T00:00:00')
+      let done = 0
+      for (let i = 0; i < 30; i++) {
+        const d = new Date(today)
+        d.setDate(today.getDate() - i)
+        if (set.has(fmt(d))) done++
+      }
+      return { done, pct: Math.round((done / 30) * 100) }
+    },
+    weekDays() {
+      const set = this.checkinSet
+      const today = new Date(this.today + 'T00:00:00')
+      const dow = (today.getDay() + 6) % 7 // Monday = 0
+      const monday = new Date(today)
+      monday.setDate(today.getDate() - dow)
+      const labels = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+      const out = []
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(monday)
+        d.setDate(monday.getDate() + i)
+        const ds = fmt(d)
+        out.push({ date: ds, label: labels[i], dayNum: d.getDate(), checked: set.has(ds), today: ds === this.today, future: ds > this.today })
+      }
+      return out
     },
     weeks() {
       const set = this.checkinSet
@@ -118,13 +184,17 @@ export default {
       return cols
     }
   },
+  watch: {
+    view() { this.$nextTick(this.scrollGridToEnd) }
+  },
   mounted() {
-    this.$nextTick(() => {
-      const el = this.$el.querySelector('.grid-scroll')
-      if (el) el.scrollLeft = el.scrollWidth
-    })
+    this.$nextTick(this.scrollGridToEnd)
   },
   methods: {
+    scrollGridToEnd() {
+      const el = this.$el.querySelector('.grid-scroll')
+      if (el) el.scrollLeft = el.scrollWidth
+    },
     cellClick(cell) {
       if (!cell.future) this.$emit('toggle', cell.date)
     }
@@ -151,6 +221,7 @@ export default {
 .icon-btn:hover { background: var(--input); color: var(--text); }
 .icon-btn.danger:hover { color: var(--expense); }
 
+/* Grid */
 .grid-scroll { overflow-x: auto; padding-bottom: 6px; }
 .grid { display: flex; gap: 3px; width: max-content; }
 .col { display: flex; flex-direction: column; gap: 3px; }
@@ -162,9 +233,41 @@ export default {
 .cell.future { background: transparent; cursor: default; }
 .cell.future:hover { border-color: transparent; }
 
+/* Ring */
+.ring-wrap { position: relative; width: 150px; height: 150px; margin: 4px auto 8px; }
+.ring { width: 100%; height: 100%; display: block; }
+.ring-track { stroke: var(--input); }
+.ring-prog { transition: stroke-dashoffset .4s ease; }
+.ring-center {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; pointer-events: none;
+}
+.ring-pct { font-size: 28px; font-weight: 800; }
+.ring-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* Week */
+.week-row { display: flex; justify-content: space-between; gap: 4px; padding: 6px 0 8px; }
+.wk {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  background: none; border: none; cursor: pointer; padding: 0;
+}
+.wk .wk-lbl { font-size: 11px; color: var(--muted); }
+.wk .wk-num {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 600; color: var(--text);
+  background: var(--input); border: 2px solid transparent; transition: .12s;
+}
+.wk.checked .wk-num { color: #fff; }
+.wk.today .wk-num { border-color: var(--primary); }
+.wk.future { cursor: default; opacity: .4; }
+
 .hc-bottom { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
 .hc-name { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.hc-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.hc-icon {
+  width: 30px; height: 30px; flex-shrink: 0; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center; font-size: 17px;
+}
 .hc-name-text { font-size: 16px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .checkin-fab {

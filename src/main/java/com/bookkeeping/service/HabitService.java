@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 public class HabitService {
 
     private static final String DEFAULT_COLOR = "#3dd6a3";
+    private static final String DEFAULT_ICON = "🎯";
 
     private final HabitMapper habitMapper;
     private final HabitCheckinMapper checkinMapper;
@@ -61,6 +62,11 @@ public class HabitService {
         if (habit.getColor() == null || habit.getColor().trim().isEmpty()) {
             habit.setColor(DEFAULT_COLOR);
         }
+        if (habit.getIcon() == null || habit.getIcon().trim().isEmpty()) {
+            habit.setIcon(DEFAULT_ICON);
+        } else {
+            habit.setIcon(habit.getIcon().trim());
+        }
         habit.setCreatedAt(LocalDateTime.now());
         habitMapper.insert(habit);
         return new HabitDto(habit, Collections.emptyList());
@@ -73,6 +79,9 @@ public class HabitService {
         }
         if (input.getColor() != null && !input.getColor().trim().isEmpty()) {
             existing.setColor(input.getColor().trim());
+        }
+        if (input.getIcon() != null && !input.getIcon().trim().isEmpty()) {
+            existing.setIcon(input.getIcon().trim());
         }
         habitMapper.updateById(existing);
         List<String> checkins = checkinMapper.selectList(

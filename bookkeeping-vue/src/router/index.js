@@ -1,28 +1,20 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
-import LoginView from '../views/LoginView.vue'
-import AddView from '../views/AddView.vue'
-import RecordsView from '../views/RecordsView.vue'
-import HabitsView from '../views/HabitsView.vue'
-import TodosView from '../views/TodosView.vue'
-import TimerView from '../views/TimerView.vue'
-import StatsView from '../views/StatsView.vue'
-import ProfileView from '../views/ProfileView.vue'
-import BudgetsView from '../views/BudgetsView.vue'
-import RecurringView from '../views/RecurringView.vue'
-
+// Route components are lazy-loaded (code-split) so the initial bundle stays small;
+// each view's chunk is fetched on first navigation to it.
 const routes = [
-  { path: '/login', name: 'login', component: LoginView, meta: { public: true } },
-  { path: '/add', name: 'add', component: AddView },
-  { path: '/records', name: 'records', component: RecordsView },
-  { path: '/habits', name: 'habits', component: HabitsView },
-  { path: '/daily', name: 'daily', component: TodosView },
-  { path: '/timer', name: 'timer', component: TimerView },
-  { path: '/stats', name: 'stats', component: StatsView },
-  { path: '/budgets', name: 'budgets', component: BudgetsView },
-  { path: '/recurring', name: 'recurring', component: RecurringView },
-  { path: '/me', name: 'me', component: ProfileView },
+  { path: '/login', name: 'login', component: () => import('../views/LoginView.vue'), meta: { public: true } },
+  { path: '/add', name: 'add', component: () => import('../views/AddView.vue') },
+  { path: '/records', name: 'records', component: () => import('../views/RecordsView.vue') },
+  { path: '/habits', name: 'habits', component: () => import('../views/HabitsView.vue') },
+  { path: '/daily', name: 'daily', component: () => import('../views/TodosView.vue') },
+  { path: '/timer', name: 'timer', component: () => import('../views/TimerView.vue') },
+  { path: '/stats', name: 'stats', component: () => import('../views/StatsView.vue') },
+  { path: '/more', name: 'more', component: () => import('../views/MoreView.vue') },
+  { path: '/budgets', name: 'budgets', component: () => import('../views/BudgetsView.vue') },
+  { path: '/recurring', name: 'recurring', component: () => import('../views/RecurringView.vue') },
+  { path: '/me', name: 'me', component: () => import('../views/ProfileView.vue') },
   { path: '/:pathMatch(.*)*', redirect: '/records' }
 ]
 

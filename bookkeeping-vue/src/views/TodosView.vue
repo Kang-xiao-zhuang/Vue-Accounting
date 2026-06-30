@@ -1,6 +1,9 @@
 <template>
   <div>
-    <h2 class="view-title">Daily Checklist</h2>
+    <div class="more-subhead">
+      <button class="page-back" @click="$router.push('/more')" aria-label="Back to More">‹</button>
+      <h2 class="view-title">Daily Checklist</h2>
+    </div>
 
     <!-- day navigation -->
     <div class="nav-bar">

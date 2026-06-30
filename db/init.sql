@@ -1,10 +1,10 @@
--- Run this once in MySQL 5.5 to create the database.
--- All tables are created automatically by Hibernate (ddl-auto: update),
--- but the CREATE TABLE statements below are provided if you prefer to create them manually.
+-- Run this once in MySQL 5.5 to create the database and tables.
+-- (Persistence is MyBatis-Plus — there is NO auto-DDL, so this script must be run.)
+-- utf8mb4 is required so 4-byte emoji (habit icons, notes) can be stored.
 
 CREATE DATABASE IF NOT EXISTS bookkeeping
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_general_ci;
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_general_ci;
 
 USE bookkeeping;
 
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS app_user (
   created_at DATETIME,
   PRIMARY KEY (id),
   UNIQUE KEY uk_app_user_name (name)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS account_record (
   id          BIGINT       NOT NULL AUTO_INCREMENT,
@@ -28,17 +28,20 @@ CREATE TABLE IF NOT EXISTS account_record (
   created_at  DATETIME,
   PRIMARY KEY (id),
   KEY idx_account_record_user (user_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS habit (
   id         BIGINT      NOT NULL AUTO_INCREMENT,
   user_id    BIGINT,
   name       VARCHAR(64) NOT NULL,
+  icon       VARCHAR(16),
   color      VARCHAR(16),
   created_at DATETIME,
   PRIMARY KEY (id),
   KEY idx_habit_user (user_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- If the habit table already exists from before, add the new column:
+--   ALTER TABLE habit ADD COLUMN icon VARCHAR(16) AFTER name;
 
 CREATE TABLE IF NOT EXISTS habit_checkin (
   id           BIGINT NOT NULL AUTO_INCREMENT,
@@ -46,7 +49,7 @@ CREATE TABLE IF NOT EXISTS habit_checkin (
   checkin_date DATE   NOT NULL,
   PRIMARY KEY (id),
   UNIQUE KEY uk_habit_date (habit_id, checkin_date)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Daily checklist (todo) items. The text column is named `content`
 -- because `text` is a reserved word in MySQL.
@@ -59,7 +62,7 @@ CREATE TABLE IF NOT EXISTS todo_item (
   created_at DATETIME,
   PRIMARY KEY (id),
   KEY idx_todo_user_date (user_id, todo_date)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Monthly budgets. An empty category means the overall monthly budget.
 CREATE TABLE IF NOT EXISTS budget (
@@ -69,7 +72,7 @@ CREATE TABLE IF NOT EXISTS budget (
   monthly_limit DECIMAL(12,2) NOT NULL,
   PRIMARY KEY (id),
   UNIQUE KEY uk_budget_user_cat (user_id, category)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Recurring transaction rules; the app materializes AccountRecords from these.
 CREATE TABLE IF NOT EXISTS recurring_rule (
@@ -86,4 +89,4 @@ CREATE TABLE IF NOT EXISTS recurring_rule (
   PRIMARY KEY (id),
   KEY idx_recurring_user (user_id),
   KEY idx_recurring_active (active)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

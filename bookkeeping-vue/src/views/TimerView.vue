@@ -1,6 +1,9 @@
 <template>
   <div class="timer-view">
-    <h2 class="view-title">{{ mode === 'timer' ? 'Timer' : 'Stopwatch' }}</h2>
+    <div class="more-subhead">
+      <button class="page-back" @click="$router.push('/more')" aria-label="Back to More">‹</button>
+      <h2 class="view-title">{{ mode === 'timer' ? 'Timer' : 'Stopwatch' }}</h2>
+    </div>
 
     <!-- mode switch -->
     <div class="mode-toggle">

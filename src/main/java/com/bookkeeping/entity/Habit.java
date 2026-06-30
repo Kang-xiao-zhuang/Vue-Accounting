@@ -19,6 +19,9 @@ public class Habit {
 
     private String name;
 
+    /** Emoji icon, e.g. "📖". */
+    private String icon;
+
     /** Hex color used for the contribution grid, e.g. "#3dd6a3". */
     private String color;
 

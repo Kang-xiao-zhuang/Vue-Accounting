@@ -36,6 +36,13 @@ export const categories = {
   ]
 }
 
+// Emoji choices for habits (pick one when creating a habit).
+export const habitIcons = [
+  '🎯', '📖', '🏃', '💪', '🧘', '💧', '😴', '🥗', '🚭', '📚',
+  '✍️', '🎸', '🧹', '💊', '🌱', '☀️', '🦷', '🚶', '🚴', '🧠',
+  '💰', '🙏', '🎨', '🐶'
+]
+
 export const palette = [
   '#6d86ff', '#3dd6a3', '#ff6b7a', '#ffb84d', '#a07bff', '#4dd2ff',
   '#ff8fcf', '#ffe066', '#5fd06f', '#ff9a6b', '#7be0d0', '#c98aff'
