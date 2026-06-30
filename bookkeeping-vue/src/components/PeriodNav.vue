@@ -10,12 +10,12 @@
     </div>
 
     <div class="nav-bar" v-if="period !== 'all'">
-      <button class="nav-arrow" @click="$emit('shift', -1)">◀</button>
+      <button class="nav-arrow" @click="$emit('shift', -1)" aria-label="Previous period">◀</button>
       <div class="nav-label">
         <span>{{ label }}</span>
         <button v-if="!isCurrent" class="nav-today" @click="$emit('today')">Today</button>
       </div>
-      <button class="nav-arrow" @click="$emit('shift', 1)">▶</button>
+      <button class="nav-arrow" @click="$emit('shift', 1)" aria-label="Next period">▶</button>
     </div>
     <p class="subtitle all-label" v-else>All time</p>
   </div>

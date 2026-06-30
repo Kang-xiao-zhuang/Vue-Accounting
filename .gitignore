@@ -57,3 +57,14 @@ build/
 !**/src/test/**/build/
 
 ### VS Code ###
+# 全局忽略所有class文件
+*.class
+# 忽略整个编译输出目录（彻底解决，比单独忽略class更稳）
+target/
+out/
+build/
+# IDE缓存
+.idea/
+*.iml
+*.iws
+*.ipr

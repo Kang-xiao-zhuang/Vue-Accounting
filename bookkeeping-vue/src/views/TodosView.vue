@@ -2,20 +2,18 @@
   <div>
     <h2 class="view-title">Daily Checklist</h2>
 
-    <p v-if="!hasUser" class="error-banner">Add a user on the “Me” tab first, then build your daily checklist.</p>
-
     <!-- day navigation -->
     <div class="nav-bar">
-      <button class="nav-arrow" @click="$emit('shift', -1)">◀</button>
+      <button class="nav-arrow" @click="store.shift(-1)" aria-label="Previous day">◀</button>
       <div class="nav-label">
-        <span>{{ label }}</span>
-        <button v-if="!isToday" class="nav-today" @click="$emit('today')">Today</button>
+        <span>{{ store.dateLabel }}</span>
+        <button v-if="!store.isToday" class="nav-today" @click="store.goToday">Today</button>
       </div>
-      <button class="nav-arrow" @click="$emit('shift', 1)">▶</button>
+      <button class="nav-arrow" @click="store.shift(1)" aria-label="Next day">▶</button>
     </div>
 
     <!-- progress -->
-    <div v-if="hasUser && total > 0" class="progress-box">
+    <div v-if="total > 0" class="progress-box">
       <div class="progress-head">
         <span>{{ doneCount }} / {{ total }} done</span>
         <span class="pct">{{ percent }}%</span>
@@ -24,7 +22,7 @@
     </div>
 
     <!-- add bar -->
-    <div v-if="hasUser" class="add-bar">
+    <div class="add-bar">
       <input
         v-model="newText"
         class="add-input"
@@ -32,15 +30,15 @@
         maxlength="255"
         @keyup.enter="add"
       />
-      <button class="add-go" :disabled="!newText.trim()" @click="add">＋</button>
+      <button class="add-go" :disabled="!newText.trim()" @click="add" aria-label="Add task">＋</button>
     </div>
 
-    <div v-if="hasUser && todos.length === 0" class="empty">Nothing for this day yet. Add your first task above! ✨</div>
+    <div v-if="items.length === 0" class="empty">Nothing for this day yet. Add your first task above! ✨</div>
 
     <!-- list -->
     <ul class="todo-list">
-      <li v-for="t in todos" :key="t.id" class="todo-item" :class="{ done: t.done }">
-        <button class="check" :class="{ on: t.done }" @click="$emit('toggle', t.id)">
+      <li v-for="t in items" :key="t.id" class="todo-item" :class="{ done: t.done }">
+        <button class="check" :class="{ on: t.done }" @click="store.toggle(t.id)" :aria-label="(t.done ? 'Mark incomplete: ' : 'Mark done: ') + t.text" :aria-pressed="t.done">
           <span v-if="t.done">✓</span>
         </button>
 
@@ -56,35 +54,34 @@
         />
         <span v-else class="todo-text" @click="startEdit(t)">{{ t.text }}</span>
 
-        <button class="del" title="Delete" @click="$emit('remove', t.id)">🗑</button>
+        <button class="del" title="Delete" :aria-label="'Delete task ' + t.text" @click="store.remove(t.id)">🗑</button>
       </li>
     </ul>
   </div>
 </template>
 
 <script>
+import { useTodosStore } from '../stores/todos'
+
 export default {
   name: 'TodosView',
-  props: {
-    todos: { type: Array, default: () => [] },
-    label: { type: String, default: '' },
-    isToday: { type: Boolean, default: true },
-    hasUser: { type: Boolean, default: false }
+  setup() {
+    return { store: useTodosStore() }
   },
-  emits: ['add', 'toggle', 'update', 'remove', 'shift', 'today'],
   data() {
     return { newText: '', editingId: null, editText: '' }
   },
   computed: {
-    total() { return this.todos.length },
-    doneCount() { return this.todos.filter(t => t.done).length },
+    items() { return this.store.forDay },
+    total() { return this.items.length },
+    doneCount() { return this.items.filter(t => t.done).length },
     percent() { return this.total ? Math.round((this.doneCount / this.total) * 100) : 0 }
   },
   methods: {
     add() {
       const text = this.newText.trim()
       if (!text) return
-      this.$emit('add', text)
+      this.store.add(text)
       this.newText = ''
     },
     startEdit(t) {
@@ -100,10 +97,10 @@ export default {
       if (this.editingId == null) return
       const id = this.editingId
       const text = this.editText.trim()
-      const original = this.todos.find(t => t.id === id)
+      const original = this.items.find(t => t.id === id)
       this.editingId = null
       if (text && original && text !== original.text) {
-        this.$emit('update', { id, text })
+        this.store.update(id, text)
       }
     },
     cancelEdit() {

@@ -2,13 +2,11 @@
   <div>
     <div class="view-head">
       <h2 class="view-title">Habits</h2>
-      <button v-if="hasUser" class="add-btn" :class="{ open: showForm }" @click="toggleForm" :title="showForm ? 'Close' : 'New habit'">＋</button>
+      <button class="add-btn" :class="{ open: showForm }" @click="toggleForm" :title="showForm ? 'Close' : 'New habit'" aria-label="New habit">＋</button>
     </div>
 
-    <p v-if="!hasUser" class="error-banner">Add a user on the “Me” tab first, then create habits to track.</p>
-
     <!-- Add / edit form -->
-    <div class="card form-card" v-if="hasUser && showForm">
+    <div class="card form-card" v-if="showForm">
       <input ref="name" v-model="form.name" class="name-input" :placeholder="editingId ? 'Edit habit name...' : 'New habit name...'" maxlength="64" @keyup.enter="submit" />
       <div class="swatches">
         <button
@@ -17,6 +15,7 @@
           class="swatch"
           :class="{ active: form.color === c }"
           :style="{ background: c }"
+          :aria-label="'Pick color ' + c"
           @click="form.color = c"
         ></button>
       </div>
@@ -28,37 +27,37 @@
       </div>
     </div>
 
-    <div v-if="hasUser && habits.length === 0 && !showForm" class="empty">No habits yet. Tap ＋ to create one and start your streak!</div>
+    <div v-if="store.habits.length === 0 && !showForm" class="empty">No habits yet. Tap ＋ to create one and start your streak!</div>
 
     <HabitCard
-      v-for="h in habits"
+      v-for="h in store.habits"
       :key="h.id"
       :habit="h"
       :today="today"
-      @toggle="(date) => $emit('toggle', { id: h.id, date })"
+      @toggle="(date) => store.toggle(h.id, date)"
       @edit="startEdit(h)"
-      @delete="$emit('delete', h)"
+      @delete="confirmDelete(h)"
     />
   </div>
 </template>
 
 <script>
 import HabitCard from '../components/HabitCard.vue'
+import { useHabitsStore } from '../stores/habits'
+import { todayString } from '../utils'
 
 const COLORS = ['#3dd6a3', '#6d86ff', '#ff6b7a', '#ffb84d', '#a07bff', '#4dd2ff', '#ff8fcf', '#5fd06f']
 
 export default {
   name: 'HabitsView',
   components: { HabitCard },
-  props: {
-    habits: { type: Array, default: () => [] },
-    today: { type: String, required: true },
-    hasUser: { type: Boolean, default: false }
+  setup() {
+    return { store: useHabitsStore() }
   },
-  emits: ['add', 'update', 'delete', 'toggle'],
   data() {
     return {
       colors: COLORS,
+      today: todayString(),
       editingId: null,
       showForm: false,
       form: { name: '', color: COLORS[0] }
@@ -66,11 +65,8 @@ export default {
   },
   methods: {
     toggleForm() {
-      if (this.showForm) {
-        this.cancel()
-      } else {
-        this.openAdd()
-      }
+      if (this.showForm) this.cancel()
+      else this.openAdd()
     },
     openAdd() {
       this.editingId = null
@@ -81,11 +77,8 @@ export default {
     submit() {
       const name = this.form.name.trim()
       if (!name) return
-      if (this.editingId) {
-        this.$emit('update', { id: this.editingId, name, color: this.form.color })
-      } else {
-        this.$emit('add', { name, color: this.form.color })
-      }
+      if (this.editingId) this.store.update({ id: this.editingId, name, color: this.form.color })
+      else this.store.add({ name, color: this.form.color })
       this.cancel()
     },
     startEdit(habit) {
@@ -94,6 +87,11 @@ export default {
       this.showForm = true
       window.scrollTo({ top: 0, behavior: 'smooth' })
       this.focusName()
+    },
+    confirmDelete(habit) {
+      if (confirm(`Delete habit "${habit.name}" and all its check-ins?`)) {
+        this.store.remove(habit.id)
+      }
     },
     cancel() {
       this.editingId = null

@@ -1,60 +1,92 @@
 package com.bookkeeping.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.bookkeeping.entity.AccountRecord;
-import com.bookkeeping.repository.AccountRecordRepository;
-import org.springframework.data.domain.Sort;
+import com.bookkeeping.mapper.AccountRecordMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
-import javax.persistence.EntityNotFoundException;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class AccountRecordService {
 
-    private final AccountRecordRepository repository;
+    private static final Set<String> TYPES = new HashSet<>(Arrays.asList("income", "expense"));
 
-    public AccountRecordService(AccountRecordRepository repository) {
-        this.repository = repository;
+    private final AccountRecordMapper mapper;
+
+    public AccountRecordService(AccountRecordMapper mapper) {
+        this.mapper = mapper;
     }
 
     public List<AccountRecord> findAll(Long userId) {
-        Sort sort = Sort.by(Sort.Direction.DESC, "date", "id");
-        if (userId != null) {
-            return repository.findByUserId(userId, sort);
-        }
-        return repository.findAll(sort);
+        return mapper.selectList(new LambdaQueryWrapper<AccountRecord>()
+                .eq(AccountRecord::getUserId, userId)
+                .orderByDesc(AccountRecord::getDate)
+                .orderByDesc(AccountRecord::getId));
     }
 
-    public AccountRecord create(AccountRecord record) {
+    public AccountRecord create(AccountRecord record, Long userId) {
+        validate(record);
         record.setId(null);
-        return repository.save(record);
+        record.setUserId(userId);
+        record.setCategory(record.getCategory().trim());
+        record.setCreatedAt(LocalDateTime.now());
+        mapper.insert(record);
+        return record;
     }
 
-    public AccountRecord update(Long id, AccountRecord input) {
-        AccountRecord existing = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Record not found: " + id));
+    public AccountRecord update(Long id, AccountRecord input, Long userId) {
+        validate(input);
+        AccountRecord existing = mapper.selectById(id);
+        requireOwner(existing, userId);
         existing.setType(input.getType());
-        existing.setCategory(input.getCategory());
+        existing.setCategory(input.getCategory().trim());
         existing.setAmount(input.getAmount());
         existing.setDate(input.getDate());
         existing.setNote(input.getNote());
-        if (input.getUserId() != null) {
-            existing.setUserId(input.getUserId());
+        mapper.updateById(existing);
+        return existing;
+    }
+
+    public void delete(Long id, Long userId) {
+        AccountRecord existing = mapper.selectById(id);
+        if (existing == null) {
+            return;
         }
-        return repository.save(existing);
+        requireOwner(existing, userId);
+        mapper.deleteById(id);
     }
 
-    public void delete(Long id) {
-        repository.deleteById(id);
-    }
-
-    @Transactional
     public void deleteAll(Long userId) {
-        if (userId != null) {
-            repository.deleteByUserId(userId);
-        } else {
-            repository.deleteAllInBatch();
+        mapper.delete(new LambdaQueryWrapper<AccountRecord>().eq(AccountRecord::getUserId, userId));
+    }
+
+    private void validate(AccountRecord r) {
+        if (r.getType() == null || !TYPES.contains(r.getType())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "type must be 'income' or 'expense'");
+        }
+        if (r.getCategory() == null || r.getCategory().trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "category is required");
+        }
+        if (r.getAmount() == null || r.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "amount must be greater than 0");
+        }
+        if (r.getDate() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "date is required");
+        }
+    }
+
+    /** Treat someone else's (or a missing) record as not found, to avoid leaking ids. */
+    private void requireOwner(AccountRecord existing, Long userId) {
+        if (existing == null || existing.getUserId() == null || !existing.getUserId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Record not found");
         }
     }
 }

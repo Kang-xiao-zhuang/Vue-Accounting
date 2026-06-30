@@ -2,15 +2,15 @@
   <div>
     <h2 class="view-title">Records</h2>
     <PeriodNav
-      :period="period"
-      :label="periodLabel"
-      :is-current="isCurrent"
-      @update:period="$emit('update:period', $event)"
-      @shift="$emit('shift', $event)"
-      @today="$emit('today')"
+      :period="store.period"
+      :label="store.periodLabel"
+      :is-current="store.isCurrentPeriod"
+      @update:period="store.setPeriod"
+      @shift="store.shift"
+      @today="store.goToday"
     />
-    <SummaryCards :income="income" :expense="expense" :balance="balance" />
-    <RecordList :records="records" @edit="$emit('edit', $event)" @remove="$emit('remove', $event)" />
+    <SummaryCards :income="store.totalIncome" :expense="store.totalExpense" :balance="store.balance" />
+    <RecordList :records="store.periodRecords" @edit="ui.openForEdit" @remove="store.remove" />
   </div>
 </template>
 
@@ -18,19 +18,14 @@
 import PeriodNav from '../components/PeriodNav.vue'
 import SummaryCards from '../components/SummaryCards.vue'
 import RecordList from '../components/RecordList.vue'
+import { useRecordsStore } from '../stores/records'
+import { useUiStore } from '../stores/ui'
 
 export default {
   name: 'RecordsView',
   components: { PeriodNav, SummaryCards, RecordList },
-  props: {
-    period: String,
-    periodLabel: String,
-    isCurrent: Boolean,
-    income: Number,
-    expense: Number,
-    balance: Number,
-    records: { type: Array, default: () => [] }
-  },
-  emits: ['update:period', 'shift', 'today', 'edit', 'remove']
+  setup() {
+    return { store: useRecordsStore(), ui: useUiStore() }
+  }
 }
 </script>

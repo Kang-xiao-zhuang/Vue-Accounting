@@ -9,8 +9,9 @@ CREATE DATABASE IF NOT EXISTS bookkeeping
 USE bookkeeping;
 
 CREATE TABLE IF NOT EXISTS app_user (
-  id         BIGINT      NOT NULL AUTO_INCREMENT,
-  name       VARCHAR(64) NOT NULL,
+  id         BIGINT       NOT NULL AUTO_INCREMENT,
+  name       VARCHAR(64)  NOT NULL,
+  password   VARCHAR(100),            -- BCrypt hash; nullable for legacy rows
   created_at DATETIME,
   PRIMARY KEY (id),
   UNIQUE KEY uk_app_user_name (name)
@@ -58,4 +59,31 @@ CREATE TABLE IF NOT EXISTS todo_item (
   created_at DATETIME,
   PRIMARY KEY (id),
   KEY idx_todo_user_date (user_id, todo_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Monthly budgets. An empty category means the overall monthly budget.
+CREATE TABLE IF NOT EXISTS budget (
+  id            BIGINT        NOT NULL AUTO_INCREMENT,
+  user_id       BIGINT,
+  category      VARCHAR(64)   NOT NULL DEFAULT '',
+  monthly_limit DECIMAL(12,2) NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_budget_user_cat (user_id, category)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Recurring transaction rules; the app materializes AccountRecords from these.
+CREATE TABLE IF NOT EXISTS recurring_rule (
+  id            BIGINT        NOT NULL AUTO_INCREMENT,
+  user_id       BIGINT,
+  type          VARCHAR(16)   NOT NULL,
+  category      VARCHAR(64)   NOT NULL,
+  amount        DECIMAL(12,2) NOT NULL,
+  note          VARCHAR(255),
+  frequency     VARCHAR(16)   NOT NULL,   -- DAILY | WEEKLY | MONTHLY
+  next_run_date DATE          NOT NULL,
+  active        TINYINT(1)    NOT NULL DEFAULT 1,
+  created_at    DATETIME,
+  PRIMARY KEY (id),
+  KEY idx_recurring_user (user_id),
+  KEY idx_recurring_active (active)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

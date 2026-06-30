@@ -1,0 +1,14 @@
+{
+  "name": "Daily Bookkeeping",
+  "short_name": "Bookkeeping",
+  "description": "Track daily expenses, habits, a daily checklist and a timer.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f1320",
+  "theme_color": "#0f1320",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

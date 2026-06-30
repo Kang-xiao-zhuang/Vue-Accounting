@@ -1,137 +1,75 @@
 <template>
   <div>
-    <h2 class="view-title">Users</h2>
+    <h2 class="view-title">Account</h2>
 
-    <!-- Add user -->
-    <form class="add-row" @submit.prevent="add">
-      <input v-model="newName" placeholder="New user name..." maxlength="64" />
-      <button type="submit" class="btn-primary" :disabled="!newName.trim()">＋ Add</button>
-    </form>
+    <div class="card account-card">
+      <span class="avatar">{{ initial }}</span>
+      <div class="who">
+        <div class="name">{{ user ? user.name : '—' }}</div>
+        <div class="sub">Signed in</div>
+      </div>
+    </div>
 
-    <div v-if="users.length === 0" class="empty">No users yet. Add one above to start.</div>
-
-    <!-- User list -->
-    <ul class="user-list">
-      <li v-for="u in users" :key="u.id" class="user-item" :class="{ active: u.id === activeUserId }">
-        <template v-if="editingId === u.id">
-          <input v-model="editName" class="edit-input" maxlength="64" @keyup.enter="saveEdit(u)" />
-          <button class="icon-btn ok" @click="saveEdit(u)" title="Save">✓</button>
-          <button class="icon-btn" @click="cancelEdit" title="Cancel">✕</button>
-        </template>
-        <template v-else>
-          <button class="user-name" @click="$emit('select', u.id)">
-            <span class="avatar">{{ initial(u.name) }}</span>
-            <span class="name">{{ u.name }}</span>
-            <span v-if="u.id === activeUserId" class="badge">Active</span>
-          </button>
-          <button class="icon-btn" @click="startEdit(u)" title="Rename">✎</button>
-          <button class="icon-btn danger" @click="$emit('delete', u)" title="Delete">🗑</button>
-        </template>
-      </li>
-    </ul>
-
-    <button v-if="activeUserId" class="btn-clear" @click="$emit('clear-records')">
-      🗑 Clear {{ activeName }}'s records
+    <button class="btn-clear" @click="clearRecords">
+      🗑 Clear all my records
     </button>
 
-    <p class="footer-tip">The active user’s records appear on the Records, Add, and Stats tabs.</p>
+    <button class="btn-logout" @click="logout">
+      ⎋ Log out
+    </button>
+
+    <p class="footer-tip">Your records, habits and checklist are private to this account.</p>
   </div>
 </template>
 
 <script>
+import { useAuthStore } from '../stores/auth'
+import { useRecordsStore } from '../stores/records'
+
 export default {
   name: 'ProfileView',
-  props: {
-    users: { type: Array, default: () => [] },
-    activeUserId: { type: [Number, null], default: null }
-  },
-  emits: ['select', 'add', 'rename', 'delete', 'clear-records'],
-  data() {
-    return { newName: '', editingId: null, editName: '' }
+  setup() {
+    return { authStore: useAuthStore(), recordsStore: useRecordsStore() }
   },
   computed: {
-    activeName() {
-      const u = this.users.find(u => u.id === this.activeUserId)
-      return u ? u.name : ''
+    user() { return this.authStore.user },
+    initial() {
+      const n = this.user && this.user.name ? this.user.name : '?'
+      return n.trim().charAt(0).toUpperCase()
     }
   },
   methods: {
-    initial(name) {
-      return (name || '?').trim().charAt(0).toUpperCase()
-    },
-    add() {
-      const name = this.newName.trim()
-      if (!name) return
-      this.$emit('add', name)
-      this.newName = ''
-    },
-    startEdit(u) {
-      this.editingId = u.id
-      this.editName = u.name
-    },
-    cancelEdit() {
-      this.editingId = null
-      this.editName = ''
-    },
-    saveEdit(u) {
-      const name = this.editName.trim()
-      if (name && name !== u.name) {
-        this.$emit('rename', { id: u.id, name })
+    clearRecords() {
+      const name = this.user ? this.user.name : ''
+      if (confirm(`Delete ALL of ${name}'s records? This cannot be undone.`)) {
+        this.recordsStore.clear()
       }
-      this.cancelEdit()
+    },
+    logout() {
+      this.authStore.logout()
+      this.$router.push({ name: 'login' })
     }
   }
 }
 </script>
 
 <style scoped>
-.add-row { display: flex; gap: 10px; margin-bottom: 18px; }
-.btn-primary {
-  padding: 11px 16px; border: none; white-space: nowrap;
-  background: var(--primary); color: #fff; border-radius: 10px;
-  font-size: 14px; font-weight: 700; cursor: pointer;
-}
-.btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
-.btn-primary:disabled { opacity: .5; cursor: not-allowed; }
-
-.user-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-.user-item {
-  display: flex; align-items: center; gap: 8px;
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 12px; padding: 8px 10px;
-}
-.user-item.active { border-color: var(--primary); }
-.user-name {
-  flex: 1; display: flex; align-items: center; gap: 10px;
-  background: none; border: none; color: var(--text); cursor: pointer;
-  font-size: 15px; text-align: left; padding: 4px;
-}
+.account-card { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
 .avatar {
-  width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%;
-  background: var(--primary); color: #fff; font-weight: 700;
-  display: flex; align-items: center; justify-content: center; font-size: 15px;
+  width: 48px; height: 48px; flex-shrink: 0; border-radius: 50%;
+  background: var(--primary); color: #fff; font-weight: 700; font-size: 20px;
+  display: flex; align-items: center; justify-content: center;
 }
-.name { flex: 1; }
-.badge {
-  font-size: 11px; font-weight: 600; color: var(--primary);
-  background: var(--input); border: 1px solid var(--primary);
-  padding: 2px 8px; border-radius: 20px;
-}
-.edit-input { flex: 1; }
-.icon-btn {
-  background: none; border: none; color: var(--muted); cursor: pointer;
-  font-size: 16px; padding: 6px 8px; border-radius: 8px;
-}
-.icon-btn:hover { background: var(--input); color: var(--text); }
-.icon-btn.ok:hover { color: var(--income); }
-.icon-btn.danger:hover { color: var(--expense); }
+.who .name { font-size: 18px; font-weight: 700; }
+.who .sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
 
-.btn-clear {
-  width: 100%; margin-top: 20px; padding: 11px;
+.btn-clear, .btn-logout {
+  width: 100%; margin-top: 12px; padding: 12px;
   border: 1px solid var(--border); background: var(--card); color: var(--muted);
-  border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: .15s;
+  border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; transition: .15s;
 }
 .btn-clear:hover { background: var(--expense); color: #fff; border-color: var(--expense); }
+.btn-logout:hover { background: var(--input); color: var(--text); border-color: var(--primary); }
 
 .footer-tip { text-align: center; color: var(--muted); font-size: 12px; margin-top: 18px; }
 </style>

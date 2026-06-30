@@ -2,27 +2,30 @@
   <div class="summary">
     <div class="card">
       <div class="label">Income</div>
-      <div class="value income">${{ income.toLocaleString() }}</div>
+      <div class="value income">${{ money(income) }}</div>
     </div>
     <div class="card">
       <div class="label">Expense</div>
-      <div class="value expense">${{ expense.toLocaleString() }}</div>
+      <div class="value expense">${{ money(expense) }}</div>
     </div>
     <div class="card">
       <div class="label">Balance</div>
-      <div class="value balance">${{ balance.toLocaleString() }}</div>
+      <div class="value balance">${{ money(balance) }}</div>
     </div>
   </div>
 </template>
 
 <script>
+import { formatMoney } from '../utils'
+
 export default {
   name: 'SummaryCards',
   props: {
     income: { type: Number, default: 0 },
     expense: { type: Number, default: 0 },
     balance: { type: Number, default: 0 }
-  }
+  },
+  methods: { money: formatMoney }
 }
 </script>
 

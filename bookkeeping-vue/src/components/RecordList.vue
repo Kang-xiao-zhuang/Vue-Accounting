@@ -20,15 +20,16 @@
         <div class="cat">{{ r.category }}</div>
         <div class="meta">{{ r.date }}<span v-if="r.note"> · {{ r.note }}</span></div>
       </div>
-      <div class="amt" :class="r.type">{{ r.type === 'income' ? '+' : '-' }}${{ Number(r.amount).toLocaleString() }}</div>
-      <button class="edit" @click="$emit('edit', r)" title="Edit">✎</button>
-      <button class="del" @click="$emit('remove', r.id)" title="Delete">✕</button>
+      <div class="amt" :class="r.type">{{ r.type === 'income' ? '+' : '-' }}${{ money(r.amount) }}</div>
+      <button class="edit" @click="$emit('edit', r)" title="Edit" :aria-label="'Edit ' + r.category">✎</button>
+      <button class="del" @click="$emit('remove', r.id)" title="Delete" :aria-label="'Delete ' + r.category">✕</button>
     </div>
   </div>
 </template>
 
 <script>
 import { iconFor } from '../categories'
+import { formatMoney, sumAmount, round2 } from '../utils'
 
 export default {
   name: 'RecordList',
@@ -49,13 +50,14 @@ export default {
       )
     },
     totals() {
-      const inc = this.filteredRecords.filter(r => r.type === 'income').reduce((s, r) => s + Number(r.amount), 0)
-      const exp = this.filteredRecords.filter(r => r.type === 'expense').reduce((s, r) => s + Number(r.amount), 0)
-      return { inc, exp, bal: inc - exp }
+      const inc = sumAmount(this.filteredRecords.filter(r => r.type === 'income'))
+      const exp = sumAmount(this.filteredRecords.filter(r => r.type === 'expense'))
+      return { inc, exp, bal: round2(inc - exp) }
     }
   },
   methods: {
     iconFor,
+    money: formatMoney,
     exportCSV() {
       if (this.filteredRecords.length === 0) return
       const headers = ['Date', 'Type', 'Category', 'Amount', 'Note']

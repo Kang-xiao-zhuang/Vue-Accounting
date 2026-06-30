@@ -1,55 +1,63 @@
 package com.bookkeeping.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.bookkeeping.entity.User;
-import com.bookkeeping.repository.UserRepository;
-import org.springframework.data.domain.Sort;
+import com.bookkeeping.mapper.UserMapper;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Service
 public class UserService {
 
-    private final UserRepository repository;
+    private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository repository) {
-        this.repository = repository;
+    public UserService(UserMapper userMapper, PasswordEncoder passwordEncoder) {
+        this.userMapper = userMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    public List<User> findAll() {
-        return repository.findAll(Sort.by(Sort.Direction.ASC, "id"));
-    }
-
-    public User create(User user) {
-        if (user.getName() == null || user.getName().trim().isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User name is required");
+    /** Create a new account with a hashed password. */
+    public User register(String rawName, String rawPassword) {
+        String name = rawName == null ? "" : rawName.trim();
+        if (name.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is required");
         }
-        String name = user.getName().trim();
-        if (repository.existsByName(name)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User already exists: " + name);
+        if (rawPassword == null || rawPassword.length() < 4) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password must be at least 4 characters");
         }
-        user.setId(null);
+        Long existing = userMapper.selectCount(new LambdaQueryWrapper<User>().eq(User::getName, name));
+        if (existing != null && existing > 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username already taken: " + name);
+        }
+        User user = new User();
         user.setName(name);
-        return repository.save(user);
+        user.setPassword(passwordEncoder.encode(rawPassword));
+        user.setCreatedAt(LocalDateTime.now());
+        userMapper.insert(user);
+        return user;
     }
 
-    public User update(Long id, User input) {
-        User existing = repository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found: " + id));
-        if (input.getName() == null || input.getName().trim().isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User name is required");
+    /** Verify credentials and return the user, or throw 401. */
+    public User authenticate(String rawName, String rawPassword) {
+        String name = rawName == null ? "" : rawName.trim();
+        User user = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getName, name));
+        if (user == null || user.getPassword() == null || rawPassword == null
+                || !passwordEncoder.matches(rawPassword, user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
         }
-        String name = input.getName().trim();
-        if (!name.equals(existing.getName()) && repository.existsByName(name)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User already exists: " + name);
-        }
-        existing.setName(name);
-        return repository.save(existing);
+        return user;
     }
 
-    public void delete(Long id) {
-        repository.deleteById(id);
+    public User findById(Long id) {
+        User user = userMapper.selectById(id);
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found: " + id);
+        }
+        return user;
     }
 }

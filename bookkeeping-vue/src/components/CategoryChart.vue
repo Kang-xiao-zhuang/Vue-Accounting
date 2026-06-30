@@ -27,7 +27,7 @@
         <div class="donut-center">
           <div class="dc-label">Total {{ chartType }}</div>
           <div class="dc-value" :style="{ color: chartType === 'expense' ? 'var(--expense)' : 'var(--income)' }">
-            ${{ chartTotal.toLocaleString() }}
+            ${{ money(chartTotal) }}
           </div>
         </div>
       </div>
@@ -37,7 +37,7 @@
           <span class="legend-dot" :style="{ background: s.color }"></span>
           <span class="lg-cat">{{ s.icon }} {{ s.category }}</span>
           <span class="lg-pct">{{ s.percent.toFixed(0) }}%</span>
-          <span class="lg-amt">${{ s.amount.toLocaleString() }}</span>
+          <span class="lg-amt">${{ money(s.amount) }}</span>
         </div>
       </div>
     </div>
@@ -46,6 +46,7 @@
 
 <script>
 import { palette, iconFor } from '../categories'
+import { formatMoney, sumAmount } from '../utils'
 
 export default {
   name: 'CategoryChart',
@@ -55,23 +56,22 @@ export default {
   data() {
     return { chartType: 'expense', circumference: 2 * Math.PI * 70 }
   },
+  methods: { money: formatMoney },
   computed: {
     chartTotal() {
-      return this.records
-        .filter(r => r.type === this.chartType)
-        .reduce((sum, r) => sum + Number(r.amount), 0)
+      return sumAmount(this.records.filter(r => r.type === this.chartType))
     },
     breakdown() {
-      const map = {}
+      const cents = {}
       this.records
         .filter(r => r.type === this.chartType)
-        .forEach(r => { map[r.category] = (map[r.category] || 0) + Number(r.amount) })
-      const total = this.chartTotal || 1
-      return Object.keys(map)
+        .forEach(r => { cents[r.category] = (cents[r.category] || 0) + Math.round(Number(r.amount) * 100) })
+      const totalCents = Object.values(cents).reduce((s, c) => s + c, 0) || 1
+      return Object.keys(cents)
         .map(cat => ({
           category: cat,
-          amount: map[cat],
-          percent: (map[cat] / total) * 100,
+          amount: cents[cat] / 100,
+          percent: (cents[cat] / totalCents) * 100,
           icon: iconFor(this.chartType, cat)
         }))
         .sort((a, b) => b.amount - a.amount)

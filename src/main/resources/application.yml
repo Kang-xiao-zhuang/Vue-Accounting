@@ -3,23 +3,32 @@ server:
 
 spring:
   datasource:
-    # MySQL 5.5 — driver class is com.mysql.jdbc.Driver (Connector/J 5.1.x)
-    url: jdbc:mysql://localhost:3306/bookkeeping?useUnicode=true&characterEncoding=utf8&useSSL=false
-    username: root
-    password: root            # <-- change to your MySQL password
+    # MySQL 5.5 — driver class is com.mysql.jdbc.Driver (Connector/J 5.1.x).
+    # All values fall back to the local defaults but can be overridden by env vars,
+    # so credentials never have to be committed. e.g. set DB_PASSWORD in your environment.
+    url: ${DB_URL:jdbc:mysql://localhost:3306/bookkeeping?useUnicode=true&characterEncoding=utf8&useSSL=false}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.jdbc.Driver
-
-  jpa:
-    hibernate:
-      # 'update' auto-creates / migrates the table. Use 'validate' or 'none' in production.
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQL55Dialect
-        format_sql: true
-    open-in-view: false
 
   jackson:
     serialization:
       write-dates-as-timestamps: false
+
+# MyBatis-Plus. Tables are NOT auto-created (no Hibernate ddl-auto) — run db/init.sql once.
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    # Uncomment to log SQL while debugging:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    #log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  global-config:
+    db-config:
+      id-type: auto
+
+# JWT auth settings. Override the secret in production via the JWT_SECRET env var
+# (must be at least 32 bytes for HS256). Token lifetime defaults to 7 days.
+app:
+  jwt:
+    secret: ${JWT_SECRET:dev-only-secret-change-me-please-0123456789abcdef}
+    expiration-ms: ${JWT_EXPIRATION_MS:604800000}

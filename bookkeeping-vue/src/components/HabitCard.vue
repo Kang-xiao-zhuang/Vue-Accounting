@@ -7,8 +7,8 @@
         <span class="stat" :title="'Total check-ins'">✅ {{ total }}</span>
       </div>
       <div class="hc-actions">
-        <button class="icon-btn" @click="$emit('edit')" title="Edit">✎</button>
-        <button class="icon-btn danger" @click="$emit('delete')" title="Delete">🗑</button>
+        <button class="icon-btn" @click="$emit('edit')" title="Edit" :aria-label="'Edit habit ' + habit.name">✎</button>
+        <button class="icon-btn danger" @click="$emit('delete')" title="Delete" :aria-label="'Delete habit ' + habit.name">🗑</button>
       </div>
     </div>
 

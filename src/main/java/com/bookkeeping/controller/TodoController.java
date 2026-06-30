@@ -1,6 +1,7 @@
 package com.bookkeeping.controller;
 
 import com.bookkeeping.entity.TodoItem;
+import com.bookkeeping.security.SecurityUtil;
 import com.bookkeeping.service.TodoService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,7 +10,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
@@ -27,33 +27,33 @@ public class TodoController {
     }
 
     @GetMapping
-    public List<TodoItem> list(@RequestParam(required = false) Long userId) {
-        return service.findAll(userId);
+    public List<TodoItem> list() {
+        return service.findAll(SecurityUtil.currentUserId());
     }
 
     @PostMapping
     public TodoItem create(@RequestBody TodoItem item) {
-        return service.create(item);
+        return service.create(item, SecurityUtil.currentUserId());
     }
 
     @PutMapping("/{id}")
     public TodoItem update(@PathVariable Long id, @RequestBody TodoItem item) {
-        return service.update(id, item);
+        return service.update(id, item, SecurityUtil.currentUserId());
     }
 
     /** Toggle done. Returns { "done": true|false }. */
     @PostMapping("/{id}/toggle")
     public Map<String, Boolean> toggle(@PathVariable Long id) {
-        return Collections.singletonMap("done", service.toggle(id));
+        return Collections.singletonMap("done", service.toggle(id, SecurityUtil.currentUserId()));
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
-        service.delete(id);
+        service.delete(id, SecurityUtil.currentUserId());
     }
 
     @DeleteMapping
-    public void deleteAll(@RequestParam(required = false) Long userId) {
-        service.deleteAll(userId);
+    public void deleteAll() {
+        service.deleteAll(SecurityUtil.currentUserId());
     }
 }

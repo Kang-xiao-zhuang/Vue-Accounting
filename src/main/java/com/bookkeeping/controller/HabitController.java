@@ -2,6 +2,7 @@ package com.bookkeeping.controller;
 
 import com.bookkeeping.dto.HabitDto;
 import com.bookkeeping.entity.Habit;
+import com.bookkeeping.security.SecurityUtil;
 import com.bookkeeping.service.HabitService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -30,30 +31,30 @@ public class HabitController {
     }
 
     @GetMapping
-    public List<HabitDto> list(@RequestParam(required = false) Long userId) {
-        return service.findAll(userId);
+    public List<HabitDto> list() {
+        return service.findAll(SecurityUtil.currentUserId());
     }
 
     @PostMapping
     public HabitDto create(@RequestBody Habit habit) {
-        return service.create(habit);
+        return service.create(habit, SecurityUtil.currentUserId());
     }
 
     @PutMapping("/{id}")
     public HabitDto update(@PathVariable Long id, @RequestBody Habit habit) {
-        return service.update(id, habit);
+        return service.update(id, habit, SecurityUtil.currentUserId());
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
-        service.delete(id);
+        service.delete(id, SecurityUtil.currentUserId());
     }
 
-    /** Toggle today's (or any day's) check-in. Returns { "checked": true|false }. */
+    /** Toggle a day's check-in. Returns { "checked": true|false }. */
     @PostMapping("/{id}/toggle")
     public Map<String, Boolean> toggle(
             @PathVariable Long id,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        return Collections.singletonMap("checked", service.toggle(id, date));
+        return Collections.singletonMap("checked", service.toggle(id, date, SecurityUtil.currentUserId()));
     }
 }

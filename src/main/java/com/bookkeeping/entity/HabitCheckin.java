@@ -1,29 +1,20 @@
 package com.bookkeeping.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 import java.time.LocalDate;
 
 @Data
-@Entity
-@Table(name = "habit_checkin",
-        uniqueConstraints = @UniqueConstraint(name = "uk_habit_date", columnNames = {"habit_id", "checkin_date"}))
+@TableName("habit_checkin")
 public class HabitCheckin {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
-    @Column(name = "habit_id", nullable = false)
     private Long habitId;
 
-    @Column(name = "checkin_date", nullable = false)
     private LocalDate checkinDate;
 }
