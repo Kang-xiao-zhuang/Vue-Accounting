@@ -27,8 +27,11 @@ CREATE TABLE IF NOT EXISTS account_record (
   note        VARCHAR(255),
   created_at  DATETIME,
   PRIMARY KEY (id),
-  KEY idx_account_record_user (user_id)
+  KEY idx_account_record_user_date (user_id, record_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- On an existing DB, add the composite index (speeds per-user, date-sorted queries):
+--   ALTER TABLE account_record ADD INDEX idx_account_record_user_date (user_id, record_date);
+--   ALTER TABLE account_record DROP INDEX idx_account_record_user;   -- old single-column index (optional)
 
 CREATE TABLE IF NOT EXISTS habit (
   id         BIGINT      NOT NULL AUTO_INCREMENT,

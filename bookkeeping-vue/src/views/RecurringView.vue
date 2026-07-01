@@ -6,8 +6,12 @@
       <button class="run-btn" @click="runNow">Run now</button>
     </div>
 
-    <!-- Add form -->
+    <!-- Add / edit form -->
     <div class="card form-card">
+      <div class="form-head">
+        <span>{{ editingId ? 'Edit rule' : 'New rule' }}</span>
+        <button v-if="editingId" class="cancel-link" @click="resetForm">Cancel</button>
+      </div>
       <div class="type-toggle">
         <button :class="{ 'active-expense': form.type === 'expense' }" @click="setType('expense')">Expense</button>
         <button :class="{ 'active-income': form.type === 'income' }" @click="setType('income')">Income</button>
@@ -37,7 +41,7 @@
         </div>
       </div>
       <input class="note" type="text" v-model="form.note" placeholder="Note (optional)" maxlength="255" />
-      <button class="btn-primary" :disabled="!(form.amount > 0)" @click="add">＋ Add recurring</button>
+      <button class="btn-primary" :disabled="!(form.amount > 0)" @click="submit">{{ editingId ? '✓ Save changes' : '＋ Add recurring' }}</button>
     </div>
 
     <div v-if="store.rules.length === 0" class="empty">No recurring rules yet. Add one above (e.g. monthly rent).</div>
@@ -47,10 +51,11 @@
       <div class="rule-info">
         <div class="rule-top">
           <span class="rule-cat">{{ r.category }}</span>
-          <span class="rule-amt" :class="r.type">{{ r.type === 'income' ? '+' : '-' }}${{ money(r.amount) }}</span>
+          <span class="rule-amt" :class="r.type">{{ r.type === 'income' ? '+' : '-' }}{{ money(r.amount) }}</span>
         </div>
         <div class="rule-meta">{{ freqLabel(r.frequency) }} · next {{ r.nextRunDate }}<span v-if="r.note"> · {{ r.note }}</span></div>
       </div>
+      <button class="edit" title="Edit" :aria-label="'Edit recurring ' + r.category" @click="startEdit(r)">✎</button>
       <button class="toggle" :class="{ on: r.active }" :title="r.active ? 'Pause' : 'Resume'" @click="toggleActive(r)">{{ r.active ? '⏸' : '▶' }}</button>
       <button class="del" title="Delete" :aria-label="'Delete recurring ' + r.category" @click="store.remove(r.id)">🗑</button>
     </div>
@@ -59,7 +64,8 @@
 
 <script>
 import { categories, iconFor } from '../categories'
-import { formatMoney, todayString } from '../utils'
+import { todayString } from '../utils'
+import { money } from '../currency'
 import { toast } from '../toast'
 import { useRecurringStore } from '../stores/recurring'
 import { useRecordsStore } from '../stores/records'
@@ -72,11 +78,12 @@ export default {
   data() {
     return {
       categories,
-      form: { type: 'expense', category: categories.expense[0].name, amount: null, frequency: 'MONTHLY', nextRunDate: todayString(), note: '' }
+      editingId: null,
+      form: { type: 'expense', category: categories.expense[0].name, amount: null, frequency: 'MONTHLY', nextRunDate: todayString(), note: '', active: true }
     }
   },
   methods: {
-    money: formatMoney,
+    money,
     icon: iconFor,
     freqLabel(f) { return { DAILY: 'Daily', WEEKLY: 'Weekly', MONTHLY: 'Monthly' }[f] || f },
     setType(t) {
@@ -85,10 +92,28 @@ export default {
         this.form.category = categories[t][0].name
       }
     },
-    add() {
+    resetForm() {
+      this.editingId = null
+      this.form = { type: 'expense', category: categories.expense[0].name, amount: null, frequency: 'MONTHLY', nextRunDate: todayString(), note: '', active: true }
+    },
+    submit() {
       if (!(this.form.amount > 0)) return
-      this.store.create({ ...this.form, note: (this.form.note || '').trim() })
-      this.form = { type: 'expense', category: categories.expense[0].name, amount: null, frequency: 'MONTHLY', nextRunDate: todayString(), note: '' }
+      const payload = {
+        type: this.form.type, category: this.form.category, amount: this.form.amount,
+        note: (this.form.note || '').trim(), frequency: this.form.frequency,
+        nextRunDate: this.form.nextRunDate, active: this.form.active
+      }
+      if (this.editingId) this.store.update(this.editingId, payload)
+      else this.store.create(payload)
+      this.resetForm()
+    },
+    startEdit(r) {
+      this.editingId = r.id
+      this.form = {
+        type: r.type, category: r.category, amount: r.amount, frequency: r.frequency,
+        nextRunDate: r.nextRunDate, note: r.note || '', active: r.active
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     },
     toggleActive(r) {
       this.store.update(r.id, {
@@ -155,11 +180,15 @@ export default {
 .rule-amt.income { color: var(--income); }
 .rule-amt.expense { color: var(--expense); }
 .rule-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
-.toggle, .del {
+.edit, .toggle, .del {
   flex-shrink: 0; background: none; border: none; cursor: pointer;
   font-size: 16px; padding: 4px 6px; border-radius: 8px; color: var(--muted);
 }
 .toggle.on { color: var(--primary); }
-.toggle:hover, .del:hover { background: var(--input); }
+.edit:hover, .toggle:hover, .del:hover { background: var(--input); }
+.edit:hover { color: var(--primary); }
 .del:hover { color: var(--expense); }
+
+.form-head { display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 700; color: var(--muted); }
+.cancel-link { background: none; border: none; color: var(--primary); font-size: 13px; font-weight: 600; cursor: pointer; }
 </style>

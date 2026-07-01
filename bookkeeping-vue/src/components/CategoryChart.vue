@@ -27,7 +27,7 @@
         <div class="donut-center">
           <div class="dc-label">Total {{ chartType }}</div>
           <div class="dc-value" :style="{ color: chartType === 'expense' ? 'var(--expense)' : 'var(--income)' }">
-            ${{ money(chartTotal) }}
+            {{ money(chartTotal) }}
           </div>
         </div>
       </div>
@@ -37,7 +37,7 @@
           <span class="legend-dot" :style="{ background: s.color }"></span>
           <span class="lg-cat">{{ s.icon }} {{ s.category }}</span>
           <span class="lg-pct">{{ s.percent.toFixed(0) }}%</span>
-          <span class="lg-amt">${{ money(s.amount) }}</span>
+          <span class="lg-amt">{{ money(s.amount) }}</span>
         </div>
       </div>
     </div>
@@ -46,7 +46,8 @@
 
 <script>
 import { palette, iconFor } from '../categories'
-import { formatMoney, sumAmount } from '../utils'
+import { sumAmount } from '../utils'
+import { money } from '../currency'
 
 export default {
   name: 'CategoryChart',
@@ -56,7 +57,7 @@ export default {
   data() {
     return { chartType: 'expense', circumference: 2 * Math.PI * 70 }
   },
-  methods: { money: formatMoney },
+  methods: { money },
   computed: {
     chartTotal() {
       return sumAmount(this.records.filter(r => r.type === this.chartType))

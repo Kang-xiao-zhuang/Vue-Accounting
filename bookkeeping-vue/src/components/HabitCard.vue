@@ -47,6 +47,26 @@
       </div>
     </div>
 
+    <!-- ===== Month (calendar) ===== -->
+    <div v-else-if="view === 'month'" class="month-view">
+      <div class="m-title">{{ monthLabel }}</div>
+      <div class="m-grid">
+        <div class="m-dow" v-for="(d, i) in dowLabels" :key="'dow' + i">{{ d }}</div>
+        <template v-for="(c, i) in monthGrid" :key="'mc' + i">
+          <div v-if="!c" class="m-cell empty"></div>
+          <button
+            v-else
+            class="m-cell"
+            :class="{ checked: c.checked, today: c.today, future: c.future }"
+            :style="c.checked ? { background: habit.color, borderColor: habit.color } : null"
+            :disabled="c.future"
+            :title="c.date"
+            @click="!c.future && $emit('toggle', c.date)"
+          >{{ c.day }}</button>
+        </template>
+      </div>
+    </div>
+
     <!-- ===== Week (7 circles) ===== -->
     <div v-else class="week-row">
       <button
@@ -81,7 +101,7 @@
 </template>
 
 <script>
-import { fmt } from '../utils'
+import { fmt, currentStreak as calcCurrentStreak, longestStreak as calcLongestStreak } from '../utils'
 
 const WEEKS = 53
 
@@ -94,7 +114,7 @@ export default {
   },
   emits: ['toggle', 'edit', 'delete'],
   data() {
-    return { ringC: 2 * Math.PI * 54 }
+    return { ringC: 2 * Math.PI * 54, dowLabels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'] }
   },
   computed: {
     checkinSet() {
@@ -113,29 +133,10 @@ export default {
         : { background: 'transparent', borderColor: color, color: color }
     },
     currentStreak() {
-      const set = this.checkinSet
-      let streak = 0
-      const d = new Date(this.today + 'T00:00:00')
-      if (!set.has(fmt(d))) d.setDate(d.getDate() - 1) // allow streak ending yesterday
-      while (set.has(fmt(d))) {
-        streak++
-        d.setDate(d.getDate() - 1)
-      }
-      return streak
+      return calcCurrentStreak(this.habit.checkins, this.today)
     },
     longestStreak() {
-      const dates = (this.habit.checkins || []).slice().sort()
-      if (dates.length === 0) return 0
-      let best = 1, run = 1
-      for (let i = 1; i < dates.length; i++) {
-        const prev = new Date(dates[i - 1] + 'T00:00:00')
-        const cur = new Date(dates[i] + 'T00:00:00')
-        const diff = Math.round((cur - prev) / 86400000)
-        if (diff === 0) continue
-        run = diff === 1 ? run + 1 : 1
-        if (run > best) best = run
-      }
-      return best
+      return calcLongestStreak(this.habit.checkins)
     },
     ring() {
       const set = this.checkinSet
@@ -147,6 +148,25 @@ export default {
         if (set.has(fmt(d))) done++
       }
       return { done, pct: Math.round((done / 30) * 100) }
+    },
+    monthLabel() {
+      return new Date(this.today + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+    },
+    monthGrid() {
+      const set = this.checkinSet
+      const today = new Date(this.today + 'T00:00:00')
+      const year = today.getFullYear()
+      const month = today.getMonth()
+      const startDow = (new Date(year, month, 1).getDay() + 6) % 7 // Monday = 0
+      const daysInMonth = new Date(year, month + 1, 0).getDate()
+      const cells = []
+      for (let i = 0; i < startDow; i++) cells.push(null)
+      for (let d = 1; d <= daysInMonth; d++) {
+        const ds = fmt(new Date(year, month, d))
+        cells.push({ date: ds, day: d, checked: set.has(ds), today: ds === this.today, future: ds > this.today })
+      }
+      while (cells.length % 7 !== 0) cells.push(null)
+      return cells
     },
     weekDays() {
       const set = this.checkinSet
@@ -244,6 +264,22 @@ export default {
 }
 .ring-pct { font-size: 28px; font-weight: 800; }
 .ring-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* Month */
+.month-view { padding: 2px 0 6px; }
+.m-title { text-align: center; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 8px; }
+.m-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.m-dow { text-align: center; font-size: 10px; color: var(--muted); padding-bottom: 2px; }
+.m-cell {
+  aspect-ratio: 1 / 1; border: 1px solid transparent; background: var(--input);
+  border-radius: 8px; font-size: 12px; color: var(--text); cursor: pointer; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.m-cell.empty { background: transparent; }
+.m-cell.checked { color: #fff; }
+.m-cell.today { border-color: var(--primary); font-weight: 700; }
+.m-cell.future { opacity: .4; cursor: default; }
+.m-cell:not(.future):not(.empty):hover { border-color: var(--primary); }
 
 /* Week */
 .week-row { display: flex; justify-content: space-between; gap: 4px; padding: 6px 0 8px; }

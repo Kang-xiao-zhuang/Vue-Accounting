@@ -1,6 +1,8 @@
 package com.bookkeeping.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bookkeeping.entity.AccountRecord;
 import com.bookkeeping.mapper.AccountRecordMapper;
 import org.springframework.http.HttpStatus;
@@ -8,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -30,6 +33,24 @@ public class AccountRecordService {
                 .eq(AccountRecord::getUserId, userId)
                 .orderByDesc(AccountRecord::getDate)
                 .orderByDesc(AccountRecord::getId));
+    }
+
+    /** Paginated + filterable query (for browsing long history without loading everything). */
+    public IPage<AccountRecord> page(Long userId, long page, long size,
+                                     String type, String q, LocalDate from, LocalDate to) {
+        LambdaQueryWrapper<AccountRecord> w = new LambdaQueryWrapper<AccountRecord>()
+                .eq(AccountRecord::getUserId, userId);
+        if (type != null && TYPES.contains(type)) {
+            w.eq(AccountRecord::getType, type);
+        }
+        if (q != null && !q.trim().isEmpty()) {
+            String s = q.trim();
+            w.and(x -> x.like(AccountRecord::getCategory, s).or().like(AccountRecord::getNote, s));
+        }
+        if (from != null) w.ge(AccountRecord::getDate, from);
+        if (to != null) w.le(AccountRecord::getDate, to);
+        w.orderByDesc(AccountRecord::getDate).orderByDesc(AccountRecord::getId);
+        return mapper.selectPage(new Page<>(page, size), w);
     }
 
     public AccountRecord create(AccountRecord record, Long userId) {

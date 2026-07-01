@@ -12,5 +12,10 @@ export default defineConfig({
         changeOrigin: true
       }
     }
+  },
+  // Vitest config. jsdom gives us localStorage etc.
+  test: {
+    environment: 'jsdom',
+    include: ['src/**/*.{test,spec}.js']
   }
 })

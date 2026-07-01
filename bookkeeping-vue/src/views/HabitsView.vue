@@ -89,7 +89,8 @@ export default {
       views: [
         { key: 'grid', label: '▦ Grid' },
         { key: 'ring', label: '◍ Ring' },
-        { key: 'week', label: '● Week' }
+        { key: 'week', label: '● Week' },
+        { key: 'month', label: '🗓 Month' }
       ]
     }
   },

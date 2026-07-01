@@ -38,6 +38,7 @@ import { useHabitsStore } from './stores/habits'
 import { useTodosStore } from './stores/todos'
 import { useUiStore } from './stores/ui'
 import { useRecurringStore } from './stores/recurring'
+import { useBudgetsStore } from './stores/budgets'
 
 export default {
   name: 'App',
@@ -49,6 +50,7 @@ export default {
       habitsStore: useHabitsStore(),
       todosStore: useTodosStore(),
       recurringStore: useRecurringStore(),
+      budgetsStore: useBudgetsStore(),
       ui: useUiStore()
     }
   },
@@ -59,7 +61,8 @@ export default {
       themes: [
         { key: 'light', name: 'Light', icon: '☀️' },
         { key: 'dark', name: 'Dark', icon: '🌙' },
-        { key: 'duotone', name: 'Duotone', icon: '🎨' }
+        { key: 'duotone', name: 'Duotone', icon: '🎨' },
+        { key: 'auto', name: 'Auto', icon: '🌗' }
       ]
     }
   },
@@ -87,7 +90,10 @@ export default {
       try {
         await this.authStore.fetchMe() // validates the stored token + refreshes account info
         await this.recurringStore.run() // materialize any due recurring records before loading
-        await Promise.all([this.recordsStore.load(), this.habitsStore.load(), this.todosStore.load()])
+        await Promise.all([
+          this.recordsStore.load(), this.habitsStore.load(),
+          this.todosStore.load(), this.budgetsStore.load()
+        ])
       } catch (e) {
         // 401 -> handler logged out and redirected to /login
       } finally {
@@ -100,8 +106,13 @@ export default {
       else await this.recordsStore.create(payload)
       this.ui.close()
     },
+    systemDark() {
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+    },
     applyTheme() {
-      document.documentElement.setAttribute('data-theme', this.theme)
+      // 'auto' follows the OS; the other keys map directly to a data-theme.
+      const resolved = this.theme === 'auto' ? (this.systemDark() ? 'dark' : 'light') : this.theme
+      document.documentElement.setAttribute('data-theme', resolved)
       localStorage.setItem('bookkeeping-theme', this.theme)
     },
     cycleTheme() {
@@ -113,6 +124,13 @@ export default {
       const saved = localStorage.getItem('bookkeeping-theme')
       if (saved && this.themes.some(t => t.key === saved)) this.theme = saved
       this.applyTheme()
+      // Re-apply when the OS theme changes, but only while in 'auto' mode.
+      if (window.matchMedia) {
+        const mql = window.matchMedia('(prefers-color-scheme: dark)')
+        const onChange = () => { if (this.theme === 'auto') this.applyTheme() }
+        if (mql.addEventListener) mql.addEventListener('change', onChange)
+        else if (mql.addListener) mql.addListener(onChange)
+      }
     }
   },
   mounted() {

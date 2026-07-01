@@ -45,3 +45,34 @@ export function sumAmount(records) {
 export function formatMoney(n) {
   return round2(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
+
+// ===== Habit streaks =====
+
+/** Consecutive check-in days ending today (or yesterday, so today isn't "missed" yet). */
+export function currentStreak(checkins, today) {
+  const set = new Set(checkins || [])
+  let streak = 0
+  const d = new Date(today + 'T00:00:00')
+  if (!set.has(fmt(d))) d.setDate(d.getDate() - 1) // allow a streak ending yesterday
+  while (set.has(fmt(d))) {
+    streak++
+    d.setDate(d.getDate() - 1)
+  }
+  return streak
+}
+
+/** Longest run of consecutive check-in days across all history. */
+export function longestStreak(checkins) {
+  const dates = (checkins || []).slice().sort()
+  if (dates.length === 0) return 0
+  let best = 1, run = 1
+  for (let i = 1; i < dates.length; i++) {
+    const prev = new Date(dates[i - 1] + 'T00:00:00')
+    const cur = new Date(dates[i] + 'T00:00:00')
+    const diff = Math.round((cur - prev) / 86400000)
+    if (diff === 0) continue // duplicate date
+    run = diff === 1 ? run + 1 : 1
+    if (run > best) best = run
+  }
+  return best
+}

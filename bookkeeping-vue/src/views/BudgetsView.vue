@@ -55,7 +55,8 @@
 
 <script>
 import { categories, iconFor } from '../categories'
-import { formatMoney, sumAmount, todayString } from '../utils'
+import { sumAmount, todayString } from '../utils'
+import { money } from '../currency'
 import { useBudgetsStore } from '../stores/budgets'
 import { useRecordsStore } from '../stores/records'
 
@@ -98,13 +99,13 @@ export default {
     }
   },
   methods: {
-    money: formatMoney,
+    money,
     icon(cat) { return iconFor('expense', cat) },
     num(v) { return Number(v) },
     spendFor(cat) { return sumAmount(this.monthExpenses.filter(r => r.category === cat)) },
     remaining(spend, limit) {
       const diff = Number(limit) - spend
-      return diff >= 0 ? formatMoney(diff) + ' left' : formatMoney(-diff) + ' over'
+      return diff >= 0 ? money(diff) + ' left' : money(-diff) + ' over'
     },
     saveOverall() {
       if (!(this.overallInput > 0)) return

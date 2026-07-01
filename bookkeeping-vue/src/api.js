@@ -134,5 +134,18 @@ export default {
   },
   runRecurring() {
     return http.post('/recurring/run').then(r => r.data)
+  },
+
+  // ---- backup / restore ----
+  backup() {
+    return http.get('/backup').then(r => r.data)
+  },
+  restore(data) {
+    return http.post('/backup/restore', data).then(r => r.data)
+  },
+
+  // ---- paginated record history ----
+  recordsPage(params) {
+    return http.get('/records/page', { params }).then(r => r.data)
   }
 }

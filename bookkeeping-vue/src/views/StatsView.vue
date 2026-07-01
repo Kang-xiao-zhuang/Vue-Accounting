@@ -14,6 +14,7 @@
     />
     <SummaryCards :income="store.totalIncome" :expense="store.totalExpense" :balance="store.balance" />
     <CategoryChart :records="store.periodRecords" />
+    <TrendChart :records="store.records" />
   </div>
 </template>
 
@@ -21,11 +22,12 @@
 import PeriodNav from '../components/PeriodNav.vue'
 import SummaryCards from '../components/SummaryCards.vue'
 import CategoryChart from '../components/CategoryChart.vue'
+import TrendChart from '../components/TrendChart.vue'
 import { useRecordsStore } from '../stores/records'
 
 export default {
   name: 'StatsView',
-  components: { PeriodNav, SummaryCards, CategoryChart },
+  components: { PeriodNav, SummaryCards, CategoryChart, TrendChart },
   setup() {
     return { store: useRecordsStore() }
   }

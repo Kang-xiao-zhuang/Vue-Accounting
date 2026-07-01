@@ -1,6 +1,7 @@
 <template>
   <div>
     <h2 class="view-title">Records</h2>
+    <BudgetAlert />
     <PeriodNav
       :period="store.period"
       :label="store.periodLabel"
@@ -18,12 +19,13 @@
 import PeriodNav from '../components/PeriodNav.vue'
 import SummaryCards from '../components/SummaryCards.vue'
 import RecordList from '../components/RecordList.vue'
+import BudgetAlert from '../components/BudgetAlert.vue'
 import { useRecordsStore } from '../stores/records'
 import { useUiStore } from '../stores/ui'
 
 export default {
   name: 'RecordsView',
-  components: { PeriodNav, SummaryCards, RecordList },
+  components: { PeriodNav, SummaryCards, RecordList, BudgetAlert },
   setup() {
     return { store: useRecordsStore(), ui: useUiStore() }
   }

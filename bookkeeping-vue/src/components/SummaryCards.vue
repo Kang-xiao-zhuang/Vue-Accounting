@@ -2,21 +2,21 @@
   <div class="summary">
     <div class="card">
       <div class="label">Income</div>
-      <div class="value income">${{ money(income) }}</div>
+      <div class="value income">{{ money(income) }}</div>
     </div>
     <div class="card">
       <div class="label">Expense</div>
-      <div class="value expense">${{ money(expense) }}</div>
+      <div class="value expense">{{ money(expense) }}</div>
     </div>
     <div class="card">
       <div class="label">Balance</div>
-      <div class="value balance">${{ money(balance) }}</div>
+      <div class="value balance">{{ money(balance) }}</div>
     </div>
   </div>
 </template>
 
 <script>
-import { formatMoney } from '../utils'
+import { money } from '../currency'
 
 export default {
   name: 'SummaryCards',
@@ -25,7 +25,7 @@ export default {
     expense: { type: Number, default: 0 },
     balance: { type: Number, default: 0 }
   },
-  methods: { money: formatMoney }
+  methods: { money }
 }
 </script>
 
