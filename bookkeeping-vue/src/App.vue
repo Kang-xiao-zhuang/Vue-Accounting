@@ -39,6 +39,7 @@ import { useTodosStore } from './stores/todos'
 import { useUiStore } from './stores/ui'
 import { useRecurringStore } from './stores/recurring'
 import { useBudgetsStore } from './stores/budgets'
+import { themeState, themes, cycleTheme, initTheme } from './theme'
 
 export default {
   name: 'App',
@@ -51,20 +52,12 @@ export default {
       todosStore: useTodosStore(),
       recurringStore: useRecurringStore(),
       budgetsStore: useBudgetsStore(),
-      ui: useUiStore()
+      ui: useUiStore(),
+      cycleTheme
     }
   },
   data() {
-    return {
-      loading: true,
-      theme: 'dark',
-      themes: [
-        { key: 'light', name: 'Light', icon: '☀️' },
-        { key: 'dark', name: 'Dark', icon: '🌙' },
-        { key: 'duotone', name: 'Duotone', icon: '🎨' },
-        { key: 'auto', name: 'Auto', icon: '🌗' }
-      ]
-    }
+    return { loading: true }
   },
   computed: {
     showChrome() {
@@ -74,7 +67,7 @@ export default {
       return this.authStore.user ? this.authStore.user.name : ''
     },
     currentTheme() {
-      return this.themes.find(t => t.key === this.theme) || this.themes[1]
+      return themes.find(t => t.key === themeState.key) || themes[1]
     },
     themeIcon() { return this.currentTheme.icon },
     themeName() { return this.currentTheme.name }
@@ -105,36 +98,10 @@ export default {
       if (editingId) await this.recordsStore.update(editingId, payload)
       else await this.recordsStore.create(payload)
       this.ui.close()
-    },
-    systemDark() {
-      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-    },
-    applyTheme() {
-      // 'auto' follows the OS; the other keys map directly to a data-theme.
-      const resolved = this.theme === 'auto' ? (this.systemDark() ? 'dark' : 'light') : this.theme
-      document.documentElement.setAttribute('data-theme', resolved)
-      localStorage.setItem('bookkeeping-theme', this.theme)
-    },
-    cycleTheme() {
-      const i = this.themes.findIndex(t => t.key === this.theme)
-      this.theme = this.themes[(i + 1) % this.themes.length].key
-      this.applyTheme()
-    },
-    initTheme() {
-      const saved = localStorage.getItem('bookkeeping-theme')
-      if (saved && this.themes.some(t => t.key === saved)) this.theme = saved
-      this.applyTheme()
-      // Re-apply when the OS theme changes, but only while in 'auto' mode.
-      if (window.matchMedia) {
-        const mql = window.matchMedia('(prefers-color-scheme: dark)')
-        const onChange = () => { if (this.theme === 'auto') this.applyTheme() }
-        if (mql.addEventListener) mql.addEventListener('change', onChange)
-        else if (mql.addListener) mql.addListener(onChange)
-      }
     }
   },
   mounted() {
-    this.initTheme()
+    initTheme()
     if (this.authStore.isAuthed) this.loadAll()
     else this.loading = false
   }

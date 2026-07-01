@@ -13,12 +13,71 @@
       </div>
     </div>
 
-    <div class="card setting-row">
+    <button class="card setting-row theme-row" @click="currencySheet = true">
       <span class="setting-label">Currency symbol</span>
-      <select v-model="currency" class="currency-select">
-        <option v-for="c in currencyOptions" :key="c" :value="c">{{ c }}</option>
-      </select>
-    </div>
+      <span class="theme-current">{{ currency }} ›</span>
+    </button>
+
+    <button class="card setting-row theme-row" @click="themeSheet = true">
+      <span class="setting-label">Theme</span>
+      <span class="theme-current">
+        <span class="tsw">
+          <span v-for="(c, i) in currentTheme.chips" :key="i" class="tchip" :style="{ background: c }"></span>
+        </span>
+        {{ currentTheme.icon }} {{ currentTheme.name }} ›
+      </span>
+    </button>
+
+    <teleport to=".phone">
+      <transition name="sheet">
+        <div v-if="currencySheet" class="sheet-overlay" @click.self="currencySheet = false">
+          <div class="sheet">
+            <div class="sheet-handle"></div>
+            <div class="sheet-head">
+              <span class="sheet-title">Choose currency</span>
+              <button class="sheet-x" @click="currencySheet = false" aria-label="Close">✕</button>
+            </div>
+            <div class="cur-grid">
+              <button
+                v-for="c in currencyOptions"
+                :key="c"
+                class="cur-opt"
+                :class="{ active: currency === c }"
+                @click="pickCurrency(c)"
+              >{{ c }}</button>
+            </div>
+          </div>
+        </div>
+      </transition>
+    </teleport>
+
+    <teleport to=".phone">
+      <transition name="sheet">
+        <div v-if="themeSheet" class="sheet-overlay" @click.self="themeSheet = false">
+          <div class="sheet">
+            <div class="sheet-handle"></div>
+            <div class="sheet-head">
+              <span class="sheet-title">Choose theme</span>
+              <button class="sheet-x" @click="themeSheet = false" aria-label="Close">✕</button>
+            </div>
+            <div class="theme-grid">
+              <button
+                v-for="t in themes"
+                :key="t.key"
+                class="theme-opt"
+                :class="{ active: themeKey === t.key }"
+                @click="pickTheme(t.key)"
+              >
+                <span class="tsw">
+                  <span v-for="(c, i) in t.chips" :key="i" class="tchip" :style="{ background: c }"></span>
+                </span>
+                <span class="tname">{{ t.icon }} {{ t.name }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </transition>
+    </teleport>
 
     <div class="backup-row">
       <button class="btn-plain" :disabled="busy" @click="exportData">⬇ Export backup</button>
@@ -44,14 +103,15 @@ import { toast } from '../toast'
 import { useAuthStore } from '../stores/auth'
 import { useRecordsStore } from '../stores/records'
 import { currencyState, currencyOptions, setCurrency } from '../currency'
+import { themeState, themes, setTheme } from '../theme'
 
 export default {
   name: 'ProfileView',
   setup() {
-    return { authStore: useAuthStore(), recordsStore: useRecordsStore(), currencyOptions }
+    return { authStore: useAuthStore(), recordsStore: useRecordsStore(), currencyOptions, themes }
   },
   data() {
-    return { busy: false }
+    return { busy: false, themeSheet: false, currencySheet: false }
   },
   computed: {
     user() { return this.authStore.user },
@@ -62,9 +122,13 @@ export default {
     currency: {
       get() { return currencyState.symbol },
       set(v) { setCurrency(v) }
-    }
+    },
+    themeKey() { return themeState.key },
+    currentTheme() { return themes.find(t => t.key === themeState.key) || themes[0] }
   },
   methods: {
+    pickTheme(k) { setTheme(k); this.themeSheet = false },
+    pickCurrency(c) { setCurrency(c); this.currencySheet = false },
     clearRecords() {
       const name = this.user ? this.user.name : ''
       if (confirm(`Delete ALL of ${name}'s records? This cannot be undone.`)) {
@@ -131,7 +195,47 @@ export default {
 
 .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
 .setting-label { font-size: 15px; font-weight: 600; }
-.currency-select { width: auto; padding: 8px 12px; font-size: 15px; border-radius: 9px; border: 1px solid var(--border); }
+
+.cur-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.cur-opt {
+  padding: 14px 0; border: 1.5px solid var(--border); background: var(--input);
+  border-radius: 12px; font-size: 18px; font-weight: 700; color: var(--text); cursor: pointer; transition: .12s;
+}
+.cur-opt:hover { border-color: var(--primary); }
+.cur-opt.active { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary) inset; }
+
+.theme-row { border: none; width: 100%; text-align: left; cursor: pointer; font: inherit; color: var(--text); }
+.theme-current { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
+
+/* slide-up theme sheet */
+.sheet-overlay { position: absolute; inset: 0; z-index: 30; background: rgba(0, 0, 0, 0.55); display: flex; align-items: flex-end; }
+.sheet {
+  width: 100%; background: var(--card); border-radius: 20px 20px 0 0;
+  padding: 10px 18px calc(18px + env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; gap: 12px; max-height: 80%;
+}
+.sheet-handle { width: 40px; height: 4px; border-radius: 2px; background: var(--border); margin: 4px auto 6px; }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; }
+.sheet-title { font-size: 16px; font-weight: 700; }
+.sheet-x { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; }
+.sheet .theme-grid { overflow-y: auto; padding-bottom: 4px; }
+
+.sheet-enter-active, .sheet-leave-active { transition: opacity .2s; }
+.sheet-enter-active .sheet, .sheet-leave-active .sheet { transition: transform .25s ease; }
+.sheet-enter-from, .sheet-leave-to { opacity: 0; }
+.sheet-enter-from .sheet, .sheet-leave-to .sheet { transform: translateY(100%); }
+
+.theme-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.theme-opt {
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+  border: 1.5px solid var(--border); background: var(--input);
+  border-radius: 12px; cursor: pointer; transition: .12s;
+}
+.theme-opt:hover { border-color: var(--primary); }
+.theme-opt.active { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary) inset; }
+.tsw { display: flex; flex-shrink: 0; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+.tchip { width: 12px; height: 26px; }
+.tname { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .btn-clear, .btn-logout {
   width: 100%; margin-top: 12px; padding: 12px;
