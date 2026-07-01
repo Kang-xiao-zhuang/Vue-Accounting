@@ -1,29 +1,29 @@
 <template>
   <div class="card">
     <div class="list-header">
-      <h2>Records</h2>
-      <button class="btn-export" @click="exportCSV" :disabled="filteredRecords.length === 0">⬇ CSV</button>
+      <h2>{{ $t('rec.title') }}</h2>
+      <button class="btn-export" @click="exportCSV" :disabled="filteredRecords.length === 0">{{ $t('rec.exportCsv') }}</button>
     </div>
 
     <div class="filters">
-      <input class="search" v-model="search" placeholder="🔍 Search note or category..." />
+      <input class="search" v-model="search" :placeholder="$t('rec.search')" />
       <select class="filter" v-model="filter">
-        <option value="all">All</option>
-        <option value="expense">Expense</option>
-        <option value="income">Income</option>
+        <option value="all">{{ $t('common.all') }}</option>
+        <option value="expense">{{ $t('common.expense') }}</option>
+        <option value="income">{{ $t('common.income') }}</option>
       </select>
-      <button class="adv-toggle" :class="{ active: showAdv }" @click="showAdv = !showAdv" title="Amount filter" aria-label="Amount filter">⚙</button>
+      <button class="adv-toggle" :class="{ active: showAdv }" @click="showAdv = !showAdv" :title="$t('rec.filterAmount')" :aria-label="$t('rec.filterAmount')">⚙</button>
     </div>
 
     <div v-if="showAdv" class="amount-filter">
-      <input type="number" min="0" step="0.01" v-model.number="minAmt" placeholder="Min" />
+      <input type="number" min="0" step="0.01" v-model.number="minAmt" :placeholder="$t('rec.min')" />
       <span class="dash">–</span>
-      <input type="number" min="0" step="0.01" v-model.number="maxAmt" placeholder="Max" />
-      <button v-if="hasFilters" class="clear" @click="clearFilters">Clear</button>
+      <input type="number" min="0" step="0.01" v-model.number="maxAmt" :placeholder="$t('rec.max')" />
+      <button v-if="hasFilters" class="clear" @click="clearFilters">{{ $t('rec.clear') }}</button>
     </div>
 
     <div v-if="filteredRecords.length === 0" class="empty">
-      {{ records.length ? 'No records match your search/filters.' : 'No records for this period. Start logging above!' }}
+      {{ records.length ? $t('rec.emptyFiltered') : $t('rec.empty') }}
     </div>
 
     <template v-for="g in grouped" :key="g.date">
@@ -34,7 +34,7 @@
       <div v-for="r in g.records" :key="r.id" class="record">
         <div class="icon">{{ iconFor(r.type, r.category) }}</div>
         <div class="info">
-          <div class="cat">{{ r.category }}</div>
+          <div class="cat">{{ $catLabel(r.category) }}</div>
           <div class="meta" v-if="r.note">{{ r.note }}</div>
         </div>
         <div class="amt" :class="r.type">{{ r.type === 'income' ? '+' : '-' }}{{ money(r.amount) }}</div>
@@ -49,6 +49,7 @@
 import { iconFor } from '../categories'
 import { sumAmount, round2 } from '../utils'
 import { money, currencyState } from '../currency'
+import { localeDate } from '../i18n'
 
 export default {
   name: 'RecordList',
@@ -107,7 +108,7 @@ export default {
     iconFor,
     money,
     dayLabel(d) {
-      return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+      return localeDate(d, { weekday: 'short', month: 'short', day: 'numeric' })
     },
     clearFilters() {
       this.filter = 'all'

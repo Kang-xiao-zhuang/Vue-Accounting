@@ -2,7 +2,7 @@ export const categories = {
   expense: [
     { name: 'Dining', icon: '🍜' },
     { name: 'Breakfast', icon: '🥐' },
-    { name: 'Drinks', icon: '🧋' },
+    { name: 'Drinks', icon: '🧃' },
     { name: 'Transport', icon: '🚌' },
     { name: 'Fuel', icon: '⛽' },
     { name: 'Shopping', icon: '🛍️' },

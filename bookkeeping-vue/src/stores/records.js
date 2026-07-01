@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import api from '../api'
 import { toast } from '../toast'
 import { fmt, weekRange, todayString, sumAmount, round2 } from '../utils'
+import { t, localeDate } from '../i18n'
 
 export const useRecordsStore = defineStore('records', {
   state: () => ({
@@ -12,17 +13,17 @@ export const useRecordsStore = defineStore('records', {
   }),
   getters: {
     periodLabel(state) {
-      const t = new Date(state.anchor + 'T00:00:00')
+      const d = new Date(state.anchor + 'T00:00:00')
       if (state.period === 'day') {
-        const pretty = t.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
-        return (state.anchor === state.today ? 'Today · ' : '') + pretty
+        const pretty = localeDate(d, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
+        return (state.anchor === state.today ? t('common.today') + ' · ' : '') + pretty
       } else if (state.period === 'week') {
-        const { start, end } = weekRange(t)
+        const { start, end } = weekRange(d)
         return fmt(start) + ' – ' + fmt(end)
       } else if (state.period === 'month') {
-        return t.toLocaleDateString('en-US', { year: 'numeric', month: 'long' })
+        return localeDate(d, { year: 'numeric', month: 'long' })
       }
-      return 'All time'
+      return t('common.all')
     },
     isCurrentPeriod(state) {
       if (state.period === 'all') return true
@@ -78,28 +79,28 @@ export const useRecordsStore = defineStore('records', {
       try {
         await api.create(payload)
         await this.load()
-        toast.success('Record saved')
+        toast.success(t('toast.recordSaved'))
       } catch (e) { /* handled by interceptor */ }
     },
     async update(id, payload) {
       try {
         await api.update(id, payload)
         await this.load()
-        toast.success('Record updated')
+        toast.success(t('toast.recordUpdated'))
       } catch (e) { /* handled by interceptor */ }
     },
     async remove(id) {
       try {
         await api.remove(id)
         await this.load()
-        toast.success('Record deleted')
+        toast.success(t('toast.recordDeleted'))
       } catch (e) { /* handled by interceptor */ }
     },
     async clear() {
       try {
         await api.clear()
         await this.load()
-        toast.success('All records cleared')
+        toast.success(t('toast.recordsCleared'))
       } catch (e) { /* handled by interceptor */ }
     }
   }

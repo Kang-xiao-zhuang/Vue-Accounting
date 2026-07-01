@@ -1,8 +1,8 @@
 <template>
   <div>
     <div class="stats-head">
-      <h2 class="view-title">Statistics</h2>
-      <router-link class="budget-link" to="/budgets">🎯 Budgets</router-link>
+      <h2 class="view-title">{{ $t('stats.title') }}</h2>
+      <router-link class="budget-link" to="/budgets">{{ $t('stats.budgets') }}</router-link>
     </div>
     <PeriodNav
       :period="store.period"

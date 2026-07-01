@@ -2,15 +2,15 @@
   <div>
     <div class="sub-head">
       <button class="back" @click="$router.back()" aria-label="Back">‹</button>
-      <h2 class="view-title">Budgets</h2>
+      <h2 class="view-title">{{ $t('budget.title') }}</h2>
       <span class="month">{{ monthLabel }}</span>
     </div>
 
     <!-- Overall monthly budget -->
     <div class="card">
       <div class="row-top">
-        <strong>Overall monthly budget</strong>
-        <button v-if="store.overall" class="link-del" @click="store.remove(store.overall.id)">Remove</button>
+        <strong>{{ $t('budget.overall') }}</strong>
+        <button v-if="store.overall" class="link-del" @click="store.remove(store.overall.id)">{{ $t('budget.remove') }}</button>
       </div>
       <template v-if="store.overall">
         <Bar :spend="overallSpend" :limit="num(store.overall.monthlyLimit)" />
@@ -20,19 +20,19 @@
         </div>
       </template>
       <div class="set-row">
-        <input type="number" min="0" step="0.01" v-model.number="overallInput" placeholder="Set a monthly limit" />
-        <button class="btn-mini" :disabled="!(overallInput > 0)" @click="saveOverall">Save</button>
+        <input type="number" min="0" step="0.01" v-model.number="overallInput" :placeholder="$t('budget.setLimit')" />
+        <button class="btn-mini" :disabled="!(overallInput > 0)" @click="saveOverall">{{ $t('common.save') }}</button>
       </div>
     </div>
 
-    <h3 class="section">By category</h3>
+    <h3 class="section">{{ $t('budget.byCategory') }}</h3>
 
-    <div v-if="store.byCategory.length === 0" class="empty">No category budgets yet. Add one below.</div>
+    <div v-if="store.byCategory.length === 0" class="empty">{{ $t('budget.none') }}</div>
 
     <div v-for="b in store.byCategory" :key="b.id" class="card cat-card">
       <div class="row-top">
-        <span class="cat-name">{{ icon(b.category) }} {{ b.category }}</span>
-        <button class="link-del" @click="store.remove(b.id)">Remove</button>
+        <span class="cat-name">{{ icon(b.category) }} {{ $catLabel(b.category) }}</span>
+        <button class="link-del" @click="store.remove(b.id)">{{ $t('budget.remove') }}</button>
       </div>
       <Bar :spend="spendFor(b.category)" :limit="num(b.monthlyLimit)" />
       <div class="bar-cap">
@@ -44,11 +44,11 @@
     <!-- Add a category budget -->
     <div class="card add-card">
       <select v-model="newCat">
-        <option value="" disabled>Pick a category…</option>
-        <option v-for="c in availableCategories" :key="c.name" :value="c.name">{{ c.icon }} {{ c.name }}</option>
+        <option value="" disabled>{{ $t('budget.pick') }}</option>
+        <option v-for="c in availableCategories" :key="c.name" :value="c.name">{{ c.icon }} {{ $catLabel(c.name) }}</option>
       </select>
-      <input type="number" min="0" step="0.01" v-model.number="newAmount" placeholder="Limit" />
-      <button class="btn-mini" :disabled="!newCat || !(newAmount > 0)" @click="addCategory">Add</button>
+      <input type="number" min="0" step="0.01" v-model.number="newAmount" :placeholder="$t('budget.limit')" />
+      <button class="btn-mini" :disabled="!newCat || !(newAmount > 0)" @click="addCategory">{{ $t('budget.add') }}</button>
     </div>
   </div>
 </template>
@@ -57,6 +57,7 @@
 import { categories, iconFor } from '../categories'
 import { sumAmount, todayString } from '../utils'
 import { money } from '../currency'
+import { t, localeDate } from '../i18n'
 import { useBudgetsStore } from '../stores/budgets'
 import { useRecordsStore } from '../stores/records'
 
@@ -87,7 +88,7 @@ export default {
   computed: {
     month() { return todayString().slice(0, 7) },
     monthLabel() {
-      return new Date(todayString() + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long' })
+      return localeDate(todayString(), { year: 'numeric', month: 'long' })
     },
     monthExpenses() {
       return this.records.records.filter(r => r.type === 'expense' && r.date.slice(0, 7) === this.month)
@@ -105,7 +106,7 @@ export default {
     spendFor(cat) { return sumAmount(this.monthExpenses.filter(r => r.category === cat)) },
     remaining(spend, limit) {
       const diff = Number(limit) - spend
-      return diff >= 0 ? money(diff) + ' left' : money(-diff) + ' over'
+      return diff >= 0 ? t('budget.left', { x: money(diff) }) : t('budget.over', { x: money(-diff) })
     },
     saveOverall() {
       if (!(this.overallInput > 0)) return

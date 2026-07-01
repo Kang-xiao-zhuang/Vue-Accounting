@@ -1,14 +1,14 @@
 <template>
   <div class="card chart-card">
     <div class="chart-head">
-      <h2>Breakdown by Category</h2>
+      <h2>{{ $t('chart.breakdown') }}</h2>
       <div class="chart-toggle">
-        <button :class="{ active: chartType === 'expense' }" @click="chartType = 'expense'">Expense</button>
-        <button :class="{ active: chartType === 'income' }" @click="chartType = 'income'">Income</button>
+        <button :class="{ active: chartType === 'expense' }" @click="chartType = 'expense'">{{ $t('common.expense') }}</button>
+        <button :class="{ active: chartType === 'income' }" @click="chartType = 'income'">{{ $t('common.income') }}</button>
       </div>
     </div>
 
-    <div v-if="breakdown.length === 0" class="empty">No {{ chartType }} data for this period.</div>
+    <div v-if="breakdown.length === 0" class="empty">{{ $t('chart.noData', { type: $t('common.' + chartType) }) }}</div>
 
     <div v-else class="chart-body">
       <div class="donut-wrap">
@@ -25,7 +25,7 @@
           </g>
         </svg>
         <div class="donut-center">
-          <div class="dc-label">Total {{ chartType }}</div>
+          <div class="dc-label">{{ $t('chart.total', { type: $t('common.' + chartType) }) }}</div>
           <div class="dc-value" :style="{ color: chartType === 'expense' ? 'var(--expense)' : 'var(--income)' }">
             {{ money(chartTotal) }}
           </div>
@@ -35,7 +35,7 @@
       <div class="legend">
         <div class="legend-row" v-for="s in breakdown" :key="s.category">
           <span class="legend-dot" :style="{ background: s.color }"></span>
-          <span class="lg-cat">{{ s.icon }} {{ s.category }}</span>
+          <span class="lg-cat">{{ s.icon }} {{ $catLabel(s.category) }}</span>
           <span class="lg-pct">{{ s.percent.toFixed(0) }}%</span>
           <span class="lg-amt">{{ money(s.amount) }}</span>
         </div>

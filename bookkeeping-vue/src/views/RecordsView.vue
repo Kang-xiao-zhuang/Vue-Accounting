@@ -1,6 +1,7 @@
 <template>
   <div>
-    <h2 class="view-title">Records</h2>
+    <h2 class="view-title">{{ $t('rec.title') }}</h2>
+    <WeatherCard />
     <BudgetAlert />
     <PeriodNav
       :period="store.period"
@@ -20,12 +21,13 @@ import PeriodNav from '../components/PeriodNav.vue'
 import SummaryCards from '../components/SummaryCards.vue'
 import RecordList from '../components/RecordList.vue'
 import BudgetAlert from '../components/BudgetAlert.vue'
+import WeatherCard from '../components/WeatherCard.vue'
 import { useRecordsStore } from '../stores/records'
 import { useUiStore } from '../stores/ui'
 
 export default {
   name: 'RecordsView',
-  components: { PeriodNav, SummaryCards, RecordList, BudgetAlert },
+  components: { PeriodNav, SummaryCards, RecordList, BudgetAlert, WeatherCard },
   setup() {
     return { store: useRecordsStore(), ui: useUiStore() }
   }

@@ -39,7 +39,7 @@ A mobile-style, single-account-per-login personal app: **bookkeeping + budgets +
 
 **UX**
 - 4-tab bottom nav (**Records · Add · Stats · More**) with a More hub for the rest.
-- 3 themes + **Auto** (follows the OS light/dark); toast notifications; loading states; installable **PWA** (offline shell).
+- 8 color themes + **custom palette** (color picker) + **Auto** (follows the OS); **English / 中文** language switch; toast notifications; installable **PWA** (offline shell).
 
 ---
 

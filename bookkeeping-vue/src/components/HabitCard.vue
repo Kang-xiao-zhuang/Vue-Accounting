@@ -2,9 +2,9 @@
   <div class="card habit-card">
     <div class="hc-top">
       <div class="hc-stats">
-        <span class="stat" :class="{ hot: currentStreak > 0 }" :title="'Current streak'">🔥 {{ currentStreak }}<span class="stat-unit">{{ currentStreak === 1 ? ' day' : ' days' }}</span></span>
-        <span class="stat" :title="'Longest streak'">🏆 {{ longestStreak }} best</span>
-        <span class="stat" :title="'Total check-ins'">✅ {{ total }}</span>
+        <span class="stat" :class="{ hot: currentStreak > 0 }">🔥 {{ currentStreak }}<span class="stat-unit"> {{ currentStreak === 1 ? $t('habit.day') : $t('habit.days') }}</span></span>
+        <span class="stat">🏆 {{ longestStreak }} {{ $t('habit.best') }}</span>
+        <span class="stat">✅ {{ total }}</span>
       </div>
       <div class="hc-actions">
         <button class="icon-btn" @click="$emit('edit')" title="Edit" :aria-label="'Edit habit ' + habit.name">✎</button>
@@ -43,7 +43,7 @@
       </svg>
       <div class="ring-center">
         <div class="ring-pct">{{ ring.pct }}%</div>
-        <div class="ring-sub">{{ ring.done }}/30 days</div>
+        <div class="ring-sub">{{ $t('habit.ringSub', { n: ring.done }) }}</div>
       </div>
     </div>
 
@@ -95,7 +95,7 @@
         :style="fabStyle"
         :title="checkedToday ? 'Checked in today (tap to undo)' : 'Check in today'"
         @click="$emit('toggle', today)"
-      ><span v-if="checkedToday">✓</span><span v-else class="fab-label">done!</span></button>
+      ><span v-if="checkedToday">✓</span><span v-else class="fab-label">{{ $t('habit.doneFab') }}</span></button>
     </div>
   </div>
 </template>

@@ -1,16 +1,16 @@
 <template>
   <div>
     <div class="add-head">
-      <h2 class="view-title">Add Record</h2>
-      <router-link class="recurring-link" to="/recurring">🔁 Recurring</router-link>
+      <h2 class="view-title">{{ $t('add.title') }}</h2>
+      <router-link class="recurring-link" to="/recurring">{{ $t('add.recurring') }}</router-link>
     </div>
 
     <div class="type-toggle">
-      <button :class="{ 'active-expense': type === 'expense' }" @click="type = 'expense'">Expense</button>
-      <button :class="{ 'active-income': type === 'income' }" @click="type = 'income'">Income</button>
+      <button :class="{ 'active-expense': type === 'expense' }" @click="type = 'expense'">{{ $t('common.expense') }}</button>
+      <button :class="{ 'active-income': type === 'income' }" @click="type = 'income'">{{ $t('common.income') }}</button>
     </div>
 
-    <p class="hint">Tap a category to add a {{ type }}.</p>
+    <p class="hint">{{ $t('add.hint', { type: $t('common.' + type) }) }}</p>
 
     <div class="cat-grid">
       <button
@@ -20,7 +20,7 @@
         @click="ui.openForCategory({ type, category: c.name })"
       >
         <span class="ci">{{ c.icon }}</span>
-        <span class="cn">{{ c.name }}</span>
+        <span class="cn">{{ $catLabel(c.name) }}</span>
       </button>
     </div>
   </div>

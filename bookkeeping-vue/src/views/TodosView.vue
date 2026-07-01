@@ -2,7 +2,7 @@
   <div>
     <div class="more-subhead">
       <button class="page-back" @click="$router.push('/more')" aria-label="Back to More">‹</button>
-      <h2 class="view-title">Daily Checklist</h2>
+      <h2 class="view-title">{{ $t('todo.title') }}</h2>
     </div>
 
     <!-- day navigation -->
@@ -18,7 +18,7 @@
     <!-- progress -->
     <div v-if="total > 0" class="progress-box">
       <div class="progress-head">
-        <span>{{ doneCount }} / {{ total }} done</span>
+        <span>{{ $t('todo.done', { done: doneCount, total: total }) }}</span>
         <span class="pct">{{ percent }}%</span>
       </div>
       <div class="bar"><div class="bar-fill" :style="{ width: percent + '%' }"></div></div>
@@ -29,14 +29,14 @@
       <input
         v-model="newText"
         class="add-input"
-        placeholder="Add a task for this day..."
+        :placeholder="$t('todo.addPh')"
         maxlength="255"
         @keyup.enter="add"
       />
       <button class="add-go" :disabled="!newText.trim()" @click="add" aria-label="Add task">＋</button>
     </div>
 
-    <div v-if="items.length === 0" class="empty">Nothing for this day yet. Add your first task above! ✨</div>
+    <div v-if="items.length === 0" class="empty">{{ $t('todo.none') }}</div>
 
     <!-- list -->
     <ul class="todo-list">

@@ -2,18 +2,18 @@
   <div>
     <div class="view-head">
       <button class="page-back" @click="$router.push('/more')" aria-label="Back to More">‹</button>
-      <h2 class="view-title">Habits</h2>
-      <button class="add-btn" :class="{ open: showForm }" @click="toggleForm" :title="showForm ? 'Close' : 'New habit'" aria-label="New habit">＋</button>
+      <h2 class="view-title">{{ $t('habit.title') }}</h2>
+      <button class="add-btn" :class="{ open: showForm }" @click="toggleForm" :title="showForm ? $t('common.cancel') : $t('habit.new')" :aria-label="$t('habit.new')">＋</button>
     </div>
 
     <!-- Add / edit form -->
     <div class="card form-card" v-if="showForm">
       <div class="form-row">
         <span class="icon-preview" :style="{ background: form.color }">{{ form.icon }}</span>
-        <input ref="name" v-model="form.name" class="name-input" :placeholder="editingId ? 'Edit habit name...' : 'New habit name...'" maxlength="64" @keyup.enter="submit" />
+        <input ref="name" v-model="form.name" class="name-input" :placeholder="editingId ? $t('habit.editName') : $t('habit.newName')" maxlength="64" @keyup.enter="submit" />
       </div>
 
-      <div class="picker-label">Icon</div>
+      <div class="picker-label">{{ $t('habit.icon') }}</div>
       <div class="icons">
         <button
           v-for="ic in habitIcons"
@@ -24,7 +24,7 @@
         >{{ ic }}</button>
       </div>
 
-      <div class="picker-label">Color</div>
+      <div class="picker-label">{{ $t('habit.color') }}</div>
       <div class="swatches">
         <button
           v-for="c in colors"
@@ -38,16 +38,16 @@
       </div>
       <div class="form-actions">
         <button class="btn-primary" :disabled="!form.name.trim()" @click="submit">
-          {{ editingId ? '✓ Save' : '＋ Add Habit' }}
+          {{ editingId ? $t('habit.saveBtn') : $t('habit.addBtn') }}
         </button>
-        <button class="btn-cancel" @click="cancel">Cancel</button>
+        <button class="btn-cancel" @click="cancel">{{ $t('common.cancel') }}</button>
       </div>
     </div>
 
-    <div v-if="store.habits.length === 0 && !showForm" class="empty">No habits yet. Tap ＋ to create one and start your streak!</div>
+    <div v-if="store.habits.length === 0 && !showForm" class="empty">{{ $t('habit.none') }}</div>
 
     <div v-if="store.habits.length > 0" class="habit-views">
-      <button v-for="v in views" :key="v.key" :class="{ active: view === v.key }" @click="setView(v.key)">{{ v.label }}</button>
+      <button v-for="v in views" :key="v.key" :class="{ active: view === v.key }" @click="setView(v.key)">{{ $t(v.labelKey) }}</button>
     </div>
 
     <HabitCard
@@ -68,6 +68,8 @@ import HabitCard from '../components/HabitCard.vue'
 import { useHabitsStore } from '../stores/habits'
 import { todayString } from '../utils'
 import { habitIcons } from '../categories'
+import { confirmDialog } from '../confirm'
+import { t } from '../i18n'
 
 const COLORS = ['#3dd6a3', '#6d86ff', '#ff6b7a', '#ffb84d', '#a07bff', '#4dd2ff', '#ff8fcf', '#5fd06f']
 
@@ -87,10 +89,10 @@ export default {
       form: { name: '', icon: habitIcons[0], color: COLORS[0] },
       view: localStorage.getItem('bookkeeping-habit-view') || 'grid',
       views: [
-        { key: 'grid', label: '▦ Grid' },
-        { key: 'ring', label: '◍ Ring' },
-        { key: 'week', label: '● Week' },
-        { key: 'month', label: '🗓 Month' }
+        { key: 'grid', labelKey: 'habit.viewGrid' },
+        { key: 'ring', labelKey: 'habit.viewRing' },
+        { key: 'week', labelKey: 'habit.viewWeek' },
+        { key: 'month', labelKey: 'habit.viewMonth' }
       ]
     }
   },
@@ -120,10 +122,9 @@ export default {
       window.scrollTo({ top: 0, behavior: 'smooth' })
       this.focusName()
     },
-    confirmDelete(habit) {
-      if (confirm(`Delete habit "${habit.name}" and all its check-ins?`)) {
-        this.store.remove(habit.id)
-      }
+    async confirmDelete(habit) {
+      const ok = await confirmDialog(t('habit.confirmDelete', { name: habit.name }), { danger: true, confirmText: t('common.delete') })
+      if (ok) this.store.remove(habit.id)
     },
     cancel() {
       this.editingId = null

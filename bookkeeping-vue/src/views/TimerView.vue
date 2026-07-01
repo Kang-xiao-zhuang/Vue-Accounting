@@ -2,13 +2,13 @@
   <div class="timer-view">
     <div class="more-subhead">
       <button class="page-back" @click="$router.push('/more')" aria-label="Back to More">‹</button>
-      <h2 class="view-title">{{ mode === 'timer' ? 'Timer' : 'Stopwatch' }}</h2>
+      <h2 class="view-title">{{ mode === 'timer' ? $t('timer.title') : $t('timer.stopwatch') }}</h2>
     </div>
 
     <!-- mode switch -->
     <div class="mode-toggle">
-      <button :class="{ active: mode === 'timer' }" @click="setMode('timer')">⏲️ Timer</button>
-      <button :class="{ active: mode === 'stopwatch' }" @click="setMode('stopwatch')">⏱️ Stopwatch</button>
+      <button :class="{ active: mode === 'timer' }" @click="setMode('timer')">{{ $t('timer.modeTimer') }}</button>
+      <button :class="{ active: mode === 'stopwatch' }" @click="setMode('stopwatch')">{{ $t('timer.modeStopwatch') }}</button>
     </div>
 
     <div class="dial-wrap">
@@ -62,7 +62,7 @@
         >{{ p.label }}</button>
       </div>
       <div class="controls">
-        <button class="btn-cancel" :disabled="status === 'idle'" @click="reset">Reset</button>
+        <button class="btn-cancel" :disabled="status === 'idle'" @click="reset">{{ $t('timer.reset') }}</button>
         <button class="btn-primary" :disabled="displaySeconds <= 0" @click="toggle">{{ primaryLabel }}</button>
       </div>
     </template>
@@ -71,14 +71,14 @@
     <template v-else>
       <div class="controls">
         <button class="btn-cancel" :disabled="!swRunning && swElapsedMs === 0" @click="swRunning ? lap() : swReset()">
-          {{ swRunning ? 'Lap' : 'Reset' }}
+          {{ swRunning ? $t('timer.lap') : $t('timer.reset') }}
         </button>
-        <button class="btn-primary" @click="swToggle">{{ swRunning ? 'Stop' : (swElapsedMs > 0 ? 'Resume' : 'Start') }}</button>
+        <button class="btn-primary" @click="swToggle">{{ swRunning ? $t('timer.stop') : (swElapsedMs > 0 ? $t('timer.resume') : $t('timer.start')) }}</button>
       </div>
 
       <div v-if="lapRows.length" class="laps">
         <div class="lap-row" v-for="r in lapRows" :key="r.n">
-          <span class="lap-n">Lap {{ r.n }}</span>
+          <span class="lap-n">{{ $t('timer.lap') }} {{ r.n }}</span>
           <span class="lap-split">+{{ r.split }}</span>
           <span class="lap-total">{{ r.total }}</span>
         </div>
@@ -88,6 +88,8 @@
 </template>
 
 <script>
+import { t } from '../i18n'
+
 const RO = 92, RI = 64, SW = 11
 const CO = 2 * Math.PI * RO
 const CI = 2 * Math.PI * RI
@@ -161,18 +163,18 @@ export default {
     },
     subLabel() {
       if (this.mode === 'stopwatch') {
-        return this.swRunning ? 'Running' : (this.swElapsedMs > 0 ? 'Stopped' : 'Stopwatch')
+        return this.swRunning ? t('timer.running') : (this.swElapsedMs > 0 ? t('timer.stopped') : t('timer.stopwatch'))
       }
-      if (this.status === 'running') return 'Remaining'
-      if (this.status === 'paused') return 'Paused'
-      if (this.status === 'finished') return "Time's up!"
-      return 'Outer = min · inner = sec'
+      if (this.status === 'running') return t('timer.remaining')
+      if (this.status === 'paused') return t('timer.paused')
+      if (this.status === 'finished') return t('timer.timesUp')
+      return t('timer.setHint')
     },
     primaryLabel() {
-      if (this.status === 'running') return 'Pause'
-      if (this.status === 'paused') return 'Resume'
-      if (this.status === 'finished') return 'Start again'
-      return 'Start'
+      if (this.status === 'running') return t('timer.pause')
+      if (this.status === 'paused') return t('timer.resume')
+      if (this.status === 'finished') return t('timer.startAgain')
+      return t('timer.start')
     },
     outerTicks() { return this.buildTicks(84, 78, 74, true) },
     innerTicks() { return this.buildTicks(57, 52, 52, false) },

@@ -2,17 +2,17 @@
   <div class="login">
     <div class="login-brand">
       <div class="login-logo">💰</div>
-      <h1>Daily Bookkeeping</h1>
-      <p class="subtitle">{{ mode === 'login' ? 'Welcome back — sign in to continue.' : 'Create an account to get started.' }}</p>
+      <h1>{{ $t('app.name') }}</h1>
+      <p class="subtitle">{{ mode === 'login' ? $t('login.subLogin') : $t('login.subRegister') }}</p>
     </div>
 
     <form class="login-card card" @submit.prevent="submit">
       <div class="field">
-        <label for="login-name">Username</label>
-        <input id="login-name" v-model="name" autocomplete="username" maxlength="64" placeholder="your name" />
+        <label for="login-name">{{ $t('login.username') }}</label>
+        <input id="login-name" v-model="name" autocomplete="username" maxlength="64" :placeholder="$t('login.usernamePh')" />
       </div>
       <div class="field">
-        <label for="login-pw">Password</label>
+        <label for="login-pw">{{ $t('login.password') }}</label>
         <input
           id="login-pw" v-model="password" type="password"
           :autocomplete="mode === 'login' ? 'current-password' : 'new-password'"
@@ -21,13 +21,13 @@
       </div>
 
       <button class="btn-primary" type="submit" :disabled="!canSubmit || busy">
-        {{ busy ? 'Please wait…' : (mode === 'login' ? 'Log in' : 'Create account') }}
+        {{ busy ? $t('login.busy') : (mode === 'login' ? $t('login.login') : $t('login.register')) }}
       </button>
 
       <p class="switch">
-        {{ mode === 'login' ? "No account yet?" : 'Already have an account?' }}
+        {{ mode === 'login' ? $t('login.noAccount') : $t('login.haveAccount') }}
         <button type="button" class="link" @click="toggleMode">
-          {{ mode === 'login' ? 'Register' : 'Log in' }}
+          {{ mode === 'login' ? $t('login.toRegister') : $t('login.toLogin') }}
         </button>
       </p>
     </form>
@@ -37,6 +37,7 @@
 <script>
 import { useAuthStore } from '../stores/auth'
 import { toast } from '../toast'
+import { t } from '../i18n'
 
 export default {
   name: 'LoginView',
@@ -63,8 +64,8 @@ export default {
         if (this.mode === 'login') await this.authStore.login(name, this.password)
         else await this.authStore.register(name, this.password)
         toast.success(this.mode === 'login'
-          ? `Welcome back, ${this.authStore.user.name}!`
-          : `Account created — welcome, ${this.authStore.user.name}!`)
+          ? t('login.welcomeBack', { name: this.authStore.user.name })
+          : t('login.created', { name: this.authStore.user.name }))
         this.password = ''
         this.$router.push({ name: 'records' })
       } catch (e) {

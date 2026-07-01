@@ -1,15 +1,15 @@
 <template>
   <div class="summary">
     <div class="card">
-      <div class="label">Income</div>
+      <div class="label">{{ $t('common.income') }}</div>
       <div class="value income">{{ money(income) }}</div>
     </div>
     <div class="card">
-      <div class="label">Expense</div>
+      <div class="label">{{ $t('common.expense') }}</div>
       <div class="value expense">{{ money(expense) }}</div>
     </div>
     <div class="card">
-      <div class="label">Balance</div>
+      <div class="label">{{ $t('common.balance') }}</div>
       <div class="value balance">{{ money(balance) }}</div>
     </div>
   </div>

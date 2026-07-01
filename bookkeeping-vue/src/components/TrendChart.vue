@@ -1,10 +1,10 @@
 <template>
   <div class="card trend-card">
     <div class="chart-head">
-      <h2>6-Month Trend</h2>
+      <h2>{{ $t('trend.title') }}</h2>
       <div class="legend">
-        <span class="lg"><span class="dot inc"></span>Income</span>
-        <span class="lg"><span class="dot exp"></span>Expense</span>
+        <span class="lg"><span class="dot inc"></span>{{ $t('common.income') }}</span>
+        <span class="lg"><span class="dot exp"></span>{{ $t('common.expense') }}</span>
       </div>
     </div>
 
@@ -25,6 +25,7 @@
 <script>
 import { todayString } from '../utils'
 import { money } from '../currency'
+import { localeDate } from '../i18n'
 
 export default {
   name: 'TrendChart',
@@ -38,7 +39,7 @@ export default {
       for (let i = 5; i >= 0; i--) {
         const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
         const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')
-        buckets.push({ key, label: d.toLocaleDateString('en-US', { month: 'short' }), incomeCents: 0, expenseCents: 0 })
+        buckets.push({ key, label: localeDate(d, { month: 'short' }), incomeCents: 0, expenseCents: 0 })
       }
       const map = {}
       buckets.forEach(b => { map[b.key] = b })

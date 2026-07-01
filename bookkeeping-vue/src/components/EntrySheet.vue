@@ -1,53 +1,45 @@
 <template>
-  <transition name="sheet">
-    <div v-if="visible" class="sheet-overlay" @click.self="$emit('close')">
-      <div class="sheet">
-        <div class="sheet-handle"></div>
-        <div class="sheet-head">
-          <span class="sheet-title">{{ editing ? 'Edit Record' : 'New Record' }}</span>
-          <button class="sheet-x" @click="$emit('close')">✕</button>
-        </div>
+  <BottomSheet :visible="visible" :title="editing ? $t('sheet.edit') : $t('sheet.new')" @close="$emit('close')">
+    <div class="type-toggle">
+      <button type="button" :class="{ 'active-expense': form.type === 'expense' }" @click="setType('expense')">{{ $t('common.expense') }}</button>
+      <button type="button" :class="{ 'active-income': form.type === 'income' }" @click="setType('income')">{{ $t('common.income') }}</button>
+    </div>
 
-        <div class="type-toggle">
-          <button type="button" :class="{ 'active-expense': form.type === 'expense' }" @click="setType('expense')">Expense</button>
-          <button type="button" :class="{ 'active-income': form.type === 'income' }" @click="setType('income')">Income</button>
-        </div>
+    <div class="field">
+      <label>{{ $t('common.category') }}</label>
+      <select v-model="form.category">
+        <option v-for="c in categories[form.type]" :key="c.name" :value="c.name">{{ c.icon }} {{ $catLabel(c.name) }}</option>
+      </select>
+    </div>
 
-        <div class="field">
-          <label>Category</label>
-          <select v-model="form.category">
-            <option v-for="c in categories[form.type]" :key="c.name" :value="c.name">{{ c.icon }} {{ c.name }}</option>
-          </select>
-        </div>
+    <div class="field">
+      <label>{{ $t('common.amount') }}</label>
+      <input ref="amount" type="number" inputmode="decimal" v-model.number="form.amount" min="0" step="0.01" placeholder="0" />
+    </div>
 
-        <div class="field">
-          <label>Amount</label>
-          <input ref="amount" type="number" inputmode="decimal" v-model.number="form.amount" min="0" step="0.01" placeholder="0" />
-        </div>
-
-        <div class="row2">
-          <div class="field">
-            <label>Date</label>
-            <input type="date" v-model="form.date" />
-          </div>
-          <div class="field">
-            <label>Note</label>
-            <input type="text" v-model="form.note" placeholder="Optional..." />
-          </div>
-        </div>
-
-        <button class="sheet-save" @click="save">{{ editing ? '✓ Update' : '✓ Save' }}</button>
+    <div class="row2">
+      <div class="field">
+        <label>{{ $t('common.date') }}</label>
+        <input type="date" v-model="form.date" />
+      </div>
+      <div class="field">
+        <label>{{ $t('common.note') }}</label>
+        <input type="text" v-model="form.note" :placeholder="$t('sheet.optional')" />
       </div>
     </div>
-  </transition>
+
+    <button class="sheet-save" @click="save">{{ editing ? $t('sheet.update') : $t('sheet.save') }}</button>
+  </BottomSheet>
 </template>
 
 <script>
 import { categories } from '../categories'
 import { todayString } from '../utils'
+import BottomSheet from './BottomSheet.vue'
 
 export default {
   name: 'EntrySheet',
+  components: { BottomSheet },
   props: {
     visible: { type: Boolean, default: false },
     editing: { type: Boolean, default: false },
@@ -93,21 +85,6 @@ export default {
 </script>
 
 <style scoped>
-.sheet-overlay {
-  position: absolute; inset: 0; z-index: 30;
-  background: rgba(0, 0, 0, 0.55);
-  display: flex; align-items: flex-end;
-}
-.sheet {
-  width: 100%; background: var(--card);
-  border-radius: 20px 20px 0 0;
-  padding: 10px 18px calc(18px + env(safe-area-inset-bottom));
-  display: flex; flex-direction: column; gap: 12px;
-}
-.sheet-handle { width: 40px; height: 4px; border-radius: 2px; background: var(--border); margin: 4px auto 6px; }
-.sheet-head { display: flex; align-items: center; justify-content: space-between; }
-.sheet-title { font-size: 16px; font-weight: 700; }
-.sheet-x { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; }
 .field label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 5px; }
 .row2 { display: flex; gap: 12px; }
 .row2 .field { flex: 1; }
@@ -127,9 +104,4 @@ export default {
   font-size: 16px; font-weight: 700; cursor: pointer;
 }
 .sheet-save:hover { background: var(--primary-dark); }
-
-.sheet-enter-active, .sheet-leave-active { transition: opacity .2s; }
-.sheet-enter-active .sheet, .sheet-leave-active .sheet { transition: transform .25s ease; }
-.sheet-enter-from, .sheet-leave-to { opacity: 0; }
-.sheet-enter-from .sheet, .sheet-leave-to .sheet { transform: translateY(100%); }
 </style>

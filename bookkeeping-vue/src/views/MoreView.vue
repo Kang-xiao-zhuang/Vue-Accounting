@@ -1,12 +1,12 @@
 <template>
   <div>
-    <h2 class="view-title">More</h2>
+    <h2 class="view-title">{{ $t('more.title') }}</h2>
     <div class="more-grid">
       <router-link v-for="i in items" :key="i.to" :to="i.to" class="more-card">
         <span class="mc-ico">{{ i.icon }}</span>
         <span class="mc-text">
-          <span class="mc-label">{{ i.label }}</span>
-          <span class="mc-desc">{{ i.desc }}</span>
+          <span class="mc-label">{{ $t(i.labelKey) }}</span>
+          <span class="mc-desc">{{ $t(i.descKey) }}</span>
         </span>
         <span class="mc-arrow">›</span>
       </router-link>
@@ -20,12 +20,12 @@ export default {
   data() {
     return {
       items: [
-        { to: '/habits', icon: '🔥', label: 'Habits', desc: 'Track daily habits & streaks' },
-        { to: '/daily', icon: '📋', label: 'Daily Checklist', desc: 'To-dos per day' },
-        { to: '/timer', icon: '⏲️', label: 'Timer', desc: 'Countdown & stopwatch' },
-        { to: '/budgets', icon: '🎯', label: 'Budgets', desc: 'Monthly spending limits' },
-        { to: '/recurring', icon: '🔁', label: 'Recurring', desc: 'Auto-generated entries' },
-        { to: '/me', icon: '👤', label: 'Account', desc: 'Profile & log out' }
+        { to: '/habits', icon: '🔥', labelKey: 'more.habits', descKey: 'more.habitsDesc' },
+        { to: '/daily', icon: '📋', labelKey: 'more.daily', descKey: 'more.dailyDesc' },
+        { to: '/timer', icon: '⏲️', labelKey: 'more.timer', descKey: 'more.timerDesc' },
+        { to: '/budgets', icon: '🎯', labelKey: 'more.budgets', descKey: 'more.budgetsDesc' },
+        { to: '/recurring', icon: '🔁', labelKey: 'more.recurring', descKey: 'more.recurringDesc' },
+        { to: '/me', icon: '👤', labelKey: 'more.account', descKey: 'more.accountDesc' }
       ]
     }
   }

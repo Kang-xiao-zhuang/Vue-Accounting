@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import api from '../api'
 import { toast } from '../toast'
+import { t } from '../i18n'
 
 export const useBudgetsStore = defineStore('budgets', {
   state: () => ({
@@ -20,14 +21,14 @@ export const useBudgetsStore = defineStore('budgets', {
       try {
         await api.upsertBudget({ category: category || '', monthlyLimit })
         await this.load()
-        toast.success('Budget saved')
+        toast.success(t('toast.budgetSaved'))
       } catch (e) { /* handled by interceptor */ }
     },
     async remove(id) {
       try {
         await api.deleteBudget(id)
         await this.load()
-        toast.success('Budget removed')
+        toast.success(t('toast.budgetRemoved'))
       } catch (e) { /* handled by interceptor */ }
     }
   }

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import api from '../api'
 import { toast } from '../toast'
+import { t } from '../i18n'
 
 export const useHabitsStore = defineStore('habits', {
   state: () => ({
@@ -28,7 +29,7 @@ export const useHabitsStore = defineStore('habits', {
       try {
         await api.deleteHabit(id)
         await this.load()
-        toast.success('Habit deleted')
+        toast.success(t('habit.deleted'))
       } catch (e) { /* handled by interceptor */ }
     },
     async toggle(id, date) {

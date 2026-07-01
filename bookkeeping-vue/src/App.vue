@@ -1,7 +1,7 @@
 <template>
   <div class="phone">
     <header v-if="showChrome" class="app-header">
-      <h1>💰 Bookkeeping</h1>
+      <h1>{{ $t('app.title') }}</h1>
       <div class="header-right">
         <button class="theme-btn" @click="cycleTheme" :title="'Theme: ' + themeName" :aria-label="'Switch theme (current: ' + themeName + ')'">{{ themeIcon }}</button>
         <span class="active-user">👤 {{ userName }}</span>
@@ -25,6 +25,7 @@
     />
 
     <Toast />
+    <ConfirmSheet />
   </div>
 </template>
 
@@ -32,6 +33,7 @@
 import TabBar from './components/TabBar.vue'
 import EntrySheet from './components/EntrySheet.vue'
 import Toast from './components/Toast.vue'
+import ConfirmSheet from './components/ConfirmSheet.vue'
 import { useAuthStore } from './stores/auth'
 import { useRecordsStore } from './stores/records'
 import { useHabitsStore } from './stores/habits'
@@ -43,7 +45,7 @@ import { themeState, themes, cycleTheme, initTheme } from './theme'
 
 export default {
   name: 'App',
-  components: { TabBar, EntrySheet, Toast },
+  components: { TabBar, EntrySheet, Toast, ConfirmSheet },
   setup() {
     return {
       authStore: useAuthStore(),

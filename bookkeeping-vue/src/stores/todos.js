@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import api from '../api'
 import { fmt, todayString } from '../utils'
+import { t, localeDate } from '../i18n'
 
 export const useTodosStore = defineStore('todos', {
   state: () => ({
@@ -11,9 +12,8 @@ export const useTodosStore = defineStore('todos', {
   getters: {
     isToday(state) { return state.anchor === state.today },
     dateLabel(state) {
-      const t = new Date(state.anchor + 'T00:00:00')
-      const pretty = t.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
-      return (state.anchor === state.today ? 'Today · ' : '') + pretty
+      const pretty = localeDate(state.anchor, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
+      return (state.anchor === state.today ? t('common.today') + ' · ' : '') + pretty
     },
     forDay(state) {
       return state.todos.filter(t => t.date === state.anchor)

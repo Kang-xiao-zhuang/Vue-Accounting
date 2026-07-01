@@ -8,7 +8,7 @@
       :class="{ active: isActive(t) }"
     >
       <span class="tab-ico">{{ t.icon }}</span>
-      <span>{{ t.label }}</span>
+      <span>{{ $t(t.labelKey) }}</span>
     </router-link>
   </nav>
 </template>
@@ -19,11 +19,11 @@ export default {
   data() {
     return {
       tabs: [
-        { to: '/records', icon: '🧾', label: 'Records', match: ['records'] },
-        { to: '/add', icon: '➕', label: 'Add', match: ['add'] },
-        { to: '/stats', icon: '📊', label: 'Stats', match: ['stats'] },
+        { to: '/records', icon: '🧾', labelKey: 'nav.records', match: ['records'] },
+        { to: '/add', icon: '➕', labelKey: 'nav.add', match: ['add'] },
+        { to: '/stats', icon: '📊', labelKey: 'nav.stats', match: ['stats'] },
         // "More" stays highlighted while on any of its sub-pages.
-        { to: '/more', icon: '⋯', label: 'More', match: ['more', 'habits', 'daily', 'timer', 'budgets', 'recurring', 'me'] }
+        { to: '/more', icon: '⋯', labelKey: 'nav.more', match: ['more', 'habits', 'daily', 'timer', 'budgets', 'recurring', 'me'] }
       ]
     }
   },

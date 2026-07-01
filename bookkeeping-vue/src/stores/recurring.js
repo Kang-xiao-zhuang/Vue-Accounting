@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import api from '../api'
 import { toast } from '../toast'
+import { t } from '../i18n'
 
 export const useRecurringStore = defineStore('recurring', {
   state: () => ({
@@ -16,7 +17,7 @@ export const useRecurringStore = defineStore('recurring', {
       try {
         await api.createRecurring(rule)
         await this.load()
-        toast.success('Recurring rule added')
+        toast.success(t('toast.recurAdded'))
       } catch (e) { /* handled by interceptor */ }
     },
     async update(id, rule) {
@@ -29,7 +30,7 @@ export const useRecurringStore = defineStore('recurring', {
       try {
         await api.deleteRecurring(id)
         await this.load()
-        toast.success('Recurring rule deleted')
+        toast.success(t('toast.recurDeleted'))
       } catch (e) { /* handled by interceptor */ }
     },
     /** Catch up due occurrences. Returns the number of records created. */

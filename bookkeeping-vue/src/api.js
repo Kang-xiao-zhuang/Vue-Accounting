@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { toast } from './toast'
+import { t } from './i18n'
 
 const TOKEN_KEY = 'bookkeeping-token'
 
@@ -28,17 +29,17 @@ http.interceptors.response.use(
 
     if (res && res.status === 401 && !isAuthCall) {
       onUnauthorized()
-      toast.error('Session expired. Please log in again.')
+      toast.error(t('err.session'))
       return Promise.reject(error)
     }
 
     let msg
     if (!res) {
-      msg = 'Cannot reach the server. Is the Spring Boot backend running on port 8030?'
+      msg = t('err.network')
     } else if (res.status >= 500) {
-      msg = 'Server error. Please try again.'
+      msg = t('err.server')
     } else {
-      msg = (res.data && res.data.message) || `Request failed (${res.status}).`
+      msg = (res.data && res.data.message) || t('err.generic', { status: res.status })
     }
     toast.error(msg)
     return Promise.reject(error)

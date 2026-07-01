@@ -6,18 +6,18 @@
         :key="p"
         :class="{ active: period === p }"
         @click="$emit('update:period', p)"
-      >{{ labels[p] }}</button>
+      >{{ $t('common.' + p) }}</button>
     </div>
 
     <div class="nav-bar" v-if="period !== 'all'">
       <button class="nav-arrow" @click="$emit('shift', -1)" aria-label="Previous period">◀</button>
       <div class="nav-label">
         <span>{{ label }}</span>
-        <button v-if="!isCurrent" class="nav-today" @click="$emit('today')">Today</button>
+        <button v-if="!isCurrent" class="nav-today" @click="$emit('today')">{{ $t('common.today') }}</button>
       </div>
       <button class="nav-arrow" @click="$emit('shift', 1)" aria-label="Next period">▶</button>
     </div>
-    <p class="subtitle all-label" v-else>All time</p>
+    <p class="subtitle all-label" v-else>{{ $t('common.all') }}</p>
   </div>
 </template>
 

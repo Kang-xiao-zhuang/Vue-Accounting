@@ -2,58 +2,58 @@
   <div>
     <div class="sub-head">
       <button class="back" @click="$router.back()" aria-label="Back">‹</button>
-      <h2 class="view-title">Recurring</h2>
-      <button class="run-btn" @click="runNow">Run now</button>
+      <h2 class="view-title">{{ $t('recur.title') }}</h2>
+      <button class="run-btn" @click="runNow">{{ $t('recur.runNow') }}</button>
     </div>
 
     <!-- Add / edit form -->
     <div class="card form-card">
       <div class="form-head">
-        <span>{{ editingId ? 'Edit rule' : 'New rule' }}</span>
-        <button v-if="editingId" class="cancel-link" @click="resetForm">Cancel</button>
+        <span>{{ editingId ? $t('recur.editRule') : $t('recur.newRule') }}</span>
+        <button v-if="editingId" class="cancel-link" @click="resetForm">{{ $t('common.cancel') }}</button>
       </div>
       <div class="type-toggle">
-        <button :class="{ 'active-expense': form.type === 'expense' }" @click="setType('expense')">Expense</button>
-        <button :class="{ 'active-income': form.type === 'income' }" @click="setType('income')">Income</button>
+        <button :class="{ 'active-expense': form.type === 'expense' }" @click="setType('expense')">{{ $t('common.expense') }}</button>
+        <button :class="{ 'active-income': form.type === 'income' }" @click="setType('income')">{{ $t('common.income') }}</button>
       </div>
       <div class="grid2">
         <div>
-          <label>Category</label>
+          <label>{{ $t('common.category') }}</label>
           <select v-model="form.category">
-            <option v-for="c in categories[form.type]" :key="c.name" :value="c.name">{{ c.icon }} {{ c.name }}</option>
+            <option v-for="c in categories[form.type]" :key="c.name" :value="c.name">{{ c.icon }} {{ $catLabel(c.name) }}</option>
           </select>
         </div>
         <div>
-          <label>Amount</label>
+          <label>{{ $t('common.amount') }}</label>
           <input type="number" min="0" step="0.01" v-model.number="form.amount" placeholder="0" />
         </div>
         <div>
-          <label>Frequency</label>
+          <label>{{ $t('recur.frequency') }}</label>
           <select v-model="form.frequency">
-            <option value="DAILY">Daily</option>
-            <option value="WEEKLY">Weekly</option>
-            <option value="MONTHLY">Monthly</option>
+            <option value="DAILY">{{ $t('recur.daily') }}</option>
+            <option value="WEEKLY">{{ $t('recur.weekly') }}</option>
+            <option value="MONTHLY">{{ $t('recur.monthly') }}</option>
           </select>
         </div>
         <div>
-          <label>Next run</label>
+          <label>{{ $t('recur.nextRun') }}</label>
           <input type="date" v-model="form.nextRunDate" />
         </div>
       </div>
-      <input class="note" type="text" v-model="form.note" placeholder="Note (optional)" maxlength="255" />
-      <button class="btn-primary" :disabled="!(form.amount > 0)" @click="submit">{{ editingId ? '✓ Save changes' : '＋ Add recurring' }}</button>
+      <input class="note" type="text" v-model="form.note" :placeholder="$t('recur.notePh')" maxlength="255" />
+      <button class="btn-primary" :disabled="!(form.amount > 0)" @click="submit">{{ editingId ? $t('recur.saveBtn') : $t('recur.addBtn') }}</button>
     </div>
 
-    <div v-if="store.rules.length === 0" class="empty">No recurring rules yet. Add one above (e.g. monthly rent).</div>
+    <div v-if="store.rules.length === 0" class="empty">{{ $t('recur.none') }}</div>
 
     <div v-for="r in store.rules" :key="r.id" class="card rule" :class="{ paused: !r.active }">
       <div class="rule-icon">{{ icon(r.type, r.category) }}</div>
       <div class="rule-info">
         <div class="rule-top">
-          <span class="rule-cat">{{ r.category }}</span>
+          <span class="rule-cat">{{ $catLabel(r.category) }}</span>
           <span class="rule-amt" :class="r.type">{{ r.type === 'income' ? '+' : '-' }}{{ money(r.amount) }}</span>
         </div>
-        <div class="rule-meta">{{ freqLabel(r.frequency) }} · next {{ r.nextRunDate }}<span v-if="r.note"> · {{ r.note }}</span></div>
+        <div class="rule-meta">{{ freqLabel(r.frequency) }} · {{ $t('recur.nextLabel', { date: r.nextRunDate }) }}<span v-if="r.note"> · {{ r.note }}</span></div>
       </div>
       <button class="edit" title="Edit" :aria-label="'Edit recurring ' + r.category" @click="startEdit(r)">✎</button>
       <button class="toggle" :class="{ on: r.active }" :title="r.active ? 'Pause' : 'Resume'" @click="toggleActive(r)">{{ r.active ? '⏸' : '▶' }}</button>
@@ -66,6 +66,7 @@
 import { categories, iconFor } from '../categories'
 import { todayString } from '../utils'
 import { money } from '../currency'
+import { t } from '../i18n'
 import { toast } from '../toast'
 import { useRecurringStore } from '../stores/recurring'
 import { useRecordsStore } from '../stores/records'
@@ -85,7 +86,7 @@ export default {
   methods: {
     money,
     icon: iconFor,
-    freqLabel(f) { return { DAILY: 'Daily', WEEKLY: 'Weekly', MONTHLY: 'Monthly' }[f] || f },
+    freqLabel(f) { return t('recur.' + String(f).toLowerCase()) },
     setType(t) {
       this.form.type = t
       if (!categories[t].some(c => c.name === this.form.category)) {
@@ -125,7 +126,7 @@ export default {
       const created = await this.store.run()
       await this.records.load()
       await this.store.load()
-      toast.success(created > 0 ? `Created ${created} record(s)` : 'Nothing due right now')
+      toast.success(created > 0 ? t('recur.created', { n: created }) : t('recur.nothingDue'))
     }
   },
   mounted() {

@@ -2,24 +2,31 @@
   <div>
     <div class="more-subhead">
       <button class="page-back" @click="$router.push('/more')" aria-label="Back to More">‹</button>
-      <h2 class="view-title">Account</h2>
+      <h2 class="view-title">{{ $t('acct.title') }}</h2>
     </div>
 
     <div class="card account-card">
       <span class="avatar">{{ initial }}</span>
       <div class="who">
         <div class="name">{{ user ? user.name : '—' }}</div>
-        <div class="sub">Signed in</div>
+        <div class="sub">{{ $t('acct.signedIn') }}</div>
       </div>
     </div>
 
+    <div class="card setting-row">
+      <span class="setting-label">{{ $t('acct.language') }}</span>
+      <span class="lang-toggle">
+        <button v-for="l in languages" :key="l.key" :class="{ active: langKey === l.key }" @click="pickLang(l.key)">{{ l.label }}</button>
+      </span>
+    </div>
+
     <button class="card setting-row theme-row" @click="currencySheet = true">
-      <span class="setting-label">Currency symbol</span>
+      <span class="setting-label">{{ $t('acct.currency') }}</span>
       <span class="theme-current">{{ currency }} ›</span>
     </button>
 
     <button class="card setting-row theme-row" @click="themeSheet = true">
-      <span class="setting-label">Theme</span>
+      <span class="setting-label">{{ $t('acct.theme') }}</span>
       <span class="theme-current">
         <span class="tsw">
           <span v-for="(c, i) in currentTheme.chips" :key="i" class="tchip" :style="{ background: c }"></span>
@@ -28,38 +35,19 @@
       </span>
     </button>
 
-    <teleport to=".phone">
-      <transition name="sheet">
-        <div v-if="currencySheet" class="sheet-overlay" @click.self="currencySheet = false">
-          <div class="sheet">
-            <div class="sheet-handle"></div>
-            <div class="sheet-head">
-              <span class="sheet-title">Choose currency</span>
-              <button class="sheet-x" @click="currencySheet = false" aria-label="Close">✕</button>
-            </div>
-            <div class="cur-grid">
-              <button
-                v-for="c in currencyOptions"
-                :key="c"
-                class="cur-opt"
-                :class="{ active: currency === c }"
-                @click="pickCurrency(c)"
-              >{{ c }}</button>
-            </div>
-          </div>
-        </div>
-      </transition>
-    </teleport>
+    <BottomSheet :visible="currencySheet" :title="$t('acct.chooseCurrency')" @close="currencySheet = false">
+      <div class="cur-grid">
+        <button
+          v-for="c in currencyOptions"
+          :key="c"
+          class="cur-opt"
+          :class="{ active: currency === c }"
+          @click="pickCurrency(c)"
+        >{{ c }}</button>
+      </div>
+    </BottomSheet>
 
-    <teleport to=".phone">
-      <transition name="sheet">
-        <div v-if="themeSheet" class="sheet-overlay" @click.self="themeSheet = false">
-          <div class="sheet">
-            <div class="sheet-handle"></div>
-            <div class="sheet-head">
-              <span class="sheet-title">Choose theme</span>
-              <button class="sheet-x" @click="themeSheet = false" aria-label="Close">✕</button>
-            </div>
+    <BottomSheet :visible="themeSheet" :title="$t('acct.chooseTheme')" @close="themeSheet = false">
             <div class="theme-grid">
               <button
                 v-for="t in themes"
@@ -69,31 +57,41 @@
                 @click="pickTheme(t.key)"
               >
                 <span class="tsw">
-                  <span v-for="(c, i) in t.chips" :key="i" class="tchip" :style="{ background: c }"></span>
+                  <span v-for="(c, i) in chipsFor(t)" :key="i" class="tchip" :style="{ background: c }"></span>
                 </span>
                 <span class="tname">{{ t.icon }} {{ t.name }}</span>
               </button>
             </div>
-          </div>
-        </div>
-      </transition>
-    </teleport>
+
+            <div v-if="themeKey === 'custom'" class="custom-editor">
+              <div class="ce-row">
+                <span>{{ $t('acct.base') }}</span>
+                <span class="ce-base">
+                  <button :class="{ active: custom.base === 'light' }" @click="setCustom({ base: 'light' })">{{ $t('acct.light') }}</button>
+                  <button :class="{ active: custom.base === 'dark' }" @click="setCustom({ base: 'dark' })">{{ $t('acct.dark') }}</button>
+                </span>
+              </div>
+              <label class="ce-row"><span>{{ $t('acct.primary') }}</span><input type="color" :value="custom.primary" @input="setCustom({ primary: $event.target.value })" /></label>
+              <label class="ce-row"><span>{{ $t('common.income') }}</span><input type="color" :value="custom.income" @input="setCustom({ income: $event.target.value })" /></label>
+              <label class="ce-row"><span>{{ $t('common.expense') }}</span><input type="color" :value="custom.expense" @input="setCustom({ expense: $event.target.value })" /></label>
+            </div>
+    </BottomSheet>
 
     <div class="backup-row">
-      <button class="btn-plain" :disabled="busy" @click="exportData">⬇ Export backup</button>
-      <button class="btn-plain" :disabled="busy" @click="triggerImport">⬆ Import backup</button>
+      <button class="btn-plain" :disabled="busy" @click="exportData">{{ $t('acct.export') }}</button>
+      <button class="btn-plain" :disabled="busy" @click="triggerImport">{{ $t('acct.import') }}</button>
       <input ref="file" type="file" accept="application/json,.json" class="hidden-file" @change="onFile" />
     </div>
 
     <button class="btn-clear" @click="clearRecords">
-      🗑 Clear all my records
+      {{ $t('acct.clear') }}
     </button>
 
     <button class="btn-logout" @click="logout">
-      ⎋ Log out
+      {{ $t('acct.logout') }}
     </button>
 
-    <p class="footer-tip">Your records, habits and checklist are private to this account.</p>
+    <p class="footer-tip">{{ $t('acct.tip') }}</p>
   </div>
 </template>
 
@@ -103,12 +101,16 @@ import { toast } from '../toast'
 import { useAuthStore } from '../stores/auth'
 import { useRecordsStore } from '../stores/records'
 import { currencyState, currencyOptions, setCurrency } from '../currency'
-import { themeState, themes, setTheme } from '../theme'
+import { themeState, themes, setTheme, customState, setCustom } from '../theme'
+import { confirmDialog } from '../confirm'
+import { t, localeState, languages, setLocale } from '../i18n'
+import BottomSheet from '../components/BottomSheet.vue'
 
 export default {
   name: 'ProfileView',
+  components: { BottomSheet },
   setup() {
-    return { authStore: useAuthStore(), recordsStore: useRecordsStore(), currencyOptions, themes }
+    return { authStore: useAuthStore(), recordsStore: useRecordsStore(), currencyOptions, themes, setCustom, languages }
   },
   data() {
     return { busy: false, themeSheet: false, currencySheet: false }
@@ -124,16 +126,27 @@ export default {
       set(v) { setCurrency(v) }
     },
     themeKey() { return themeState.key },
-    currentTheme() { return themes.find(t => t.key === themeState.key) || themes[0] }
+    currentTheme() { return themes.find(x => x.key === themeState.key) || themes[0] },
+    custom() { return customState },
+    langKey() { return localeState.lang }
   },
   methods: {
-    pickTheme(k) { setTheme(k); this.themeSheet = false },
-    pickCurrency(c) { setCurrency(c); this.currencySheet = false },
-    clearRecords() {
-      const name = this.user ? this.user.name : ''
-      if (confirm(`Delete ALL of ${name}'s records? This cannot be undone.`)) {
-        this.recordsStore.clear()
+    pickLang(k) { setLocale(k) },
+    chipsFor(t) {
+      if (t.key === 'custom') {
+        return [customState.primary, customState.income, customState.expense, customState.base === 'dark' ? '#0f1320' : '#f4f6fb']
       }
+      return t.chips
+    },
+    pickTheme(k) {
+      setTheme(k)
+      if (k !== 'custom') this.themeSheet = false // keep sheet open to edit custom colors
+    },
+    pickCurrency(c) { setCurrency(c); this.currencySheet = false },
+    async clearRecords() {
+      const name = this.user ? this.user.name : ''
+      const ok = await confirmDialog(t('acct.confirmClear', { name }), { danger: true, confirmText: t('acct.deleteAll') })
+      if (ok) this.recordsStore.clear()
     },
     logout() {
       this.authStore.logout()
@@ -152,7 +165,7 @@ export default {
         a.click()
         document.body.removeChild(a)
         URL.revokeObjectURL(url)
-        toast.success('Backup downloaded')
+        toast.success(t('acct.backupDownloaded'))
       } catch (e) { /* handled by interceptor */ }
       finally { this.busy = false }
     },
@@ -167,14 +180,14 @@ export default {
       try {
         data = JSON.parse(await file.text())
       } catch (err) {
-        toast.error('That file is not valid JSON.')
+        toast.error(t('acct.notJson'))
         return
       }
-      if (!confirm('Importing will REPLACE all your current data with this backup. Continue?')) return
+      if (!(await confirmDialog(t('acct.confirmImport'), { danger: true, confirmText: t('acct.importReplace') }))) return
       this.busy = true
       try {
         await api.restore(data)
-        toast.success('Backup restored — reloading…')
+        toast.success(t('acct.restored'))
         setTimeout(() => window.location.reload(), 600)
       } catch (err) { /* handled by interceptor */ }
       finally { this.busy = false }
@@ -195,6 +208,12 @@ export default {
 
 .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
 .setting-label { font-size: 15px; font-weight: 600; }
+.lang-toggle { display: flex; gap: 6px; }
+.lang-toggle button {
+  padding: 6px 14px; border: 1px solid var(--border); background: var(--input);
+  color: var(--muted); border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.lang-toggle button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
 
 .cur-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
 .cur-opt {
@@ -207,25 +226,17 @@ export default {
 .theme-row { border: none; width: 100%; text-align: left; cursor: pointer; font: inherit; color: var(--text); }
 .theme-current { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
 
-/* slide-up theme sheet */
-.sheet-overlay { position: absolute; inset: 0; z-index: 30; background: rgba(0, 0, 0, 0.55); display: flex; align-items: flex-end; }
-.sheet {
-  width: 100%; background: var(--card); border-radius: 20px 20px 0 0;
-  padding: 10px 18px calc(18px + env(safe-area-inset-bottom));
-  display: flex; flex-direction: column; gap: 12px; max-height: 80%;
-}
-.sheet-handle { width: 40px; height: 4px; border-radius: 2px; background: var(--border); margin: 4px auto 6px; }
-.sheet-head { display: flex; align-items: center; justify-content: space-between; }
-.sheet-title { font-size: 16px; font-weight: 700; }
-.sheet-x { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; }
-.sheet .theme-grid { overflow-y: auto; padding-bottom: 4px; }
-
-.sheet-enter-active, .sheet-leave-active { transition: opacity .2s; }
-.sheet-enter-active .sheet, .sheet-leave-active .sheet { transition: transform .25s ease; }
-.sheet-enter-from, .sheet-leave-to { opacity: 0; }
-.sheet-enter-from .sheet, .sheet-leave-to .sheet { transform: translateY(100%); }
-
 .theme-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+.custom-editor { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--border); padding-top: 14px; }
+.ce-row { display: flex; align-items: center; justify-content: space-between; font-size: 14px; color: var(--text); }
+.ce-row input[type="color"] { width: 44px; height: 30px; border: 1px solid var(--border); border-radius: 8px; background: none; cursor: pointer; padding: 0; }
+.ce-base { display: flex; gap: 6px; }
+.ce-base button {
+  padding: 6px 14px; border: 1px solid var(--border); background: var(--input);
+  color: var(--muted); border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.ce-base button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
 .theme-opt {
   display: flex; align-items: center; gap: 10px; padding: 8px 10px;
   border: 1.5px solid var(--border); background: var(--input);

@@ -3,7 +3,7 @@
     <div class="ba-row" v-for="o in overspends" :key="o.key">
       <span class="ba-ico">⚠️</span>
       <span class="ba-text">
-        <strong>{{ o.label }}</strong> over budget by {{ money(o.over) }}
+        {{ $t('budget.alertOver', { label: o.label, over: money(o.over) }) }}
         <span class="ba-sub">({{ money(o.spend) }} / {{ money(o.limit) }})</span>
       </span>
     </div>
@@ -13,6 +13,7 @@
 <script>
 import { sumAmount, round2, todayString } from '../utils'
 import { money } from '../currency'
+import { t, catLabel } from '../i18n'
 import { useBudgetsStore } from '../stores/budgets'
 import { useRecordsStore } from '../stores/records'
 
@@ -32,12 +33,12 @@ export default {
       if (overall) {
         const spend = sumAmount(this.monthExpenses)
         const limit = Number(overall.monthlyLimit)
-        if (spend > limit) list.push({ key: 'overall', label: 'Overall', spend, limit, over: round2(spend - limit) })
+        if (spend > limit) list.push({ key: 'overall', label: t('budget.overallLabel'), spend, limit, over: round2(spend - limit) })
       }
       for (const b of this.budgets.byCategory) {
         const spend = sumAmount(this.monthExpenses.filter(r => r.category === b.category))
         const limit = Number(b.monthlyLimit)
-        if (spend > limit) list.push({ key: b.category, label: b.category, spend, limit, over: round2(spend - limit) })
+        if (spend > limit) list.push({ key: b.category, label: catLabel(b.category), spend, limit, over: round2(spend - limit) })
       }
       return list
     }
