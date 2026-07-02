@@ -27,6 +27,7 @@ const messages = {
     'login.busy': 'Please wait…', 'login.noAccount': 'No account yet?', 'login.haveAccount': 'Already have an account?',
     'login.toRegister': 'Register', 'login.toLogin': 'Log in',
     'login.welcomeBack': 'Welcome back, {name}!', 'login.created': 'Account created — welcome, {name}!',
+    'login.pwHint': 'At least 6 characters, with a letter and a number.',
 
     'rec.title': 'Records', 'rec.search': '🔍 Search note or category...',
     'rec.filterAmount': 'Amount filter', 'rec.min': 'Min', 'rec.max': 'Max', 'rec.clear': 'Clear',
@@ -105,7 +106,13 @@ const messages = {
     'toast.recurAdded': 'Recurring rule added', 'toast.recurDeleted': 'Recurring rule deleted',
     'err.network': 'Cannot reach the server. Is the Spring Boot backend running on port 8030?',
     'err.server': 'Server error. Please try again.', 'err.session': 'Session expired. Please log in again.',
-    'err.generic': 'Request failed ({status}).'
+    'err.generic': 'Request failed ({status}).',
+    'err.invalidCreds': 'Invalid username or password', 'err.userTaken': 'Username already taken',
+    'err.usernameRequired': 'Username is required',
+    'err.weakPassword': 'Password must be at least 6 characters and include a letter and a number',
+    'err.tooMany': 'Too many failed attempts. Try again in {n}s.',
+    'err.typeInvalid': "Type must be income or expense", 'err.amountPositive': 'Amount must be greater than 0',
+    'err.categoryRequired': 'Category is required', 'err.dateRequired': 'Date is required'
   },
   zh: {
     'app.title': '💰 记账', 'app.name': '每日记账',
@@ -122,6 +129,7 @@ const messages = {
     'login.busy': '请稍候…', 'login.noAccount': '还没有账号？', 'login.haveAccount': '已经有账号了？',
     'login.toRegister': '注册', 'login.toLogin': '登录',
     'login.welcomeBack': '欢迎回来，{name}！', 'login.created': '账号已创建 —— 欢迎，{name}！',
+    'login.pwHint': '至少 6 位，包含字母和数字。',
 
     'rec.title': '记录', 'rec.search': '🔍 搜索备注或分类...',
     'rec.filterAmount': '金额筛选', 'rec.min': '最小', 'rec.max': '最大', 'rec.clear': '清除',
@@ -200,8 +208,40 @@ const messages = {
     'toast.recurAdded': '周期规则已添加', 'toast.recurDeleted': '周期规则已删除',
     'err.network': '无法连接服务器。Spring Boot 后端是否在 8030 端口运行?',
     'err.server': '服务器错误,请重试。', 'err.session': '登录已过期,请重新登录。',
-    'err.generic': '请求失败 ({status})。'
+    'err.generic': '请求失败 ({status})。',
+    'err.invalidCreds': '用户名或密码错误', 'err.userTaken': '用户名已被占用',
+    'err.usernameRequired': '请输入用户名',
+    'err.weakPassword': '密码至少 6 位,且需包含字母和数字',
+    'err.tooMany': '登录尝试过多,请 {n} 秒后再试。',
+    'err.typeInvalid': '类型必须是收入或支出', 'err.amountPositive': '金额必须大于 0',
+    'err.categoryRequired': '请选择分类', 'err.dateRequired': '请填写日期'
   }
+}
+
+// Map known backend (English) error messages to a localized string; unknown -> return as-is.
+const SERVER_MSG_MAP = [
+  ['Invalid username or password', 'err.invalidCreds'],
+  ['Username already taken', 'err.userTaken'],
+  ['Username is required', 'err.usernameRequired'],
+  ['Password must be', 'err.weakPassword'],
+  ['Too many failed attempts', 'err.tooMany'],
+  ['type must be', 'err.typeInvalid'],
+  ['amount must be greater than 0', 'err.amountPositive'],
+  ['category is required', 'err.categoryRequired'],
+  ['date is required', 'err.dateRequired']
+]
+
+export function localizeServerMessage(msg) {
+  if (!msg) return msg
+  // Rate-limit message carries a seconds count — preserve it.
+  if (msg.indexOf('Too many failed attempts') !== -1) {
+    const m = msg.match(/(\d+)\s*s/)
+    return t('err.tooMany', { n: m ? m[1] : '' })
+  }
+  for (const [frag, key] of SERVER_MSG_MAP) {
+    if (msg.indexOf(frag) !== -1) return t(key)
+  }
+  return msg
 }
 
 // English category labels are the stored values; provide Chinese display labels.

@@ -34,13 +34,13 @@ class UserServiceTest {
     @Test
     void register_hashesPasswordAndInserts() {
         when(userMapper.selectCount(any())).thenReturn(0L);
-        when(passwordEncoder.encode("secret")).thenReturn("HASH");
+        when(passwordEncoder.encode("secret1")).thenReturn("HASH");
 
-        User user = service.register("  alice  ", "secret");
+        User user = service.register("  alice  ", "secret1");
 
         assertThat(user.getName()).isEqualTo("alice");
         assertThat(user.getPassword()).isEqualTo("HASH");
-        verify(passwordEncoder).encode("secret");
+        verify(passwordEncoder).encode("secret1");
         verify(userMapper).insert(user);
     }
 

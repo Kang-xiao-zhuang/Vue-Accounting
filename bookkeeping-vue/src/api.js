@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { toast } from './toast'
-import { t } from './i18n'
+import { t, localizeServerMessage } from './i18n'
 
 const TOKEN_KEY = 'bookkeeping-token'
 
@@ -39,7 +39,7 @@ http.interceptors.response.use(
     } else if (res.status >= 500) {
       msg = t('err.server')
     } else {
-      msg = (res.data && res.data.message) || t('err.generic', { status: res.status })
+      msg = localizeServerMessage(res.data && res.data.message) || t('err.generic', { status: res.status })
     }
     toast.error(msg)
     return Promise.reject(error)

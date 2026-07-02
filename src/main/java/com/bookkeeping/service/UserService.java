@@ -27,8 +27,10 @@ public class UserService {
         if (name.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is required");
         }
-        if (rawPassword == null || rawPassword.length() < 4) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password must be at least 4 characters");
+        if (rawPassword == null || rawPassword.length() < 6
+                || !rawPassword.matches(".*[A-Za-z].*") || !rawPassword.matches(".*\\d.*")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Password must be at least 6 characters and include a letter and a number");
         }
         Long existing = userMapper.selectCount(new LambdaQueryWrapper<User>().eq(User::getName, name));
         if (existing != null && existing > 0) {

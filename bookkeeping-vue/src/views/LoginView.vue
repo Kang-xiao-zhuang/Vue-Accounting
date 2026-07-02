@@ -18,6 +18,7 @@
           :autocomplete="mode === 'login' ? 'current-password' : 'new-password'"
           placeholder="••••••" @keyup.enter="submit"
         />
+        <p v-if="mode === 'register'" class="pw-hint">{{ $t('login.pwHint') }}</p>
       </div>
 
       <button class="btn-primary" type="submit" :disabled="!canSubmit || busy">
@@ -49,7 +50,7 @@ export default {
   },
   computed: {
     canSubmit() {
-      return this.name.trim().length > 0 && this.password.length >= 4
+      return this.name.trim().length > 0 && this.password.length >= 6
     }
   },
   methods: {
@@ -100,6 +101,7 @@ export default {
 }
 .btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
 .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+.pw-hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
 .switch { text-align: center; font-size: 13px; color: var(--muted); }
 .link {
   background: none; border: none; color: var(--primary); font-weight: 700;
