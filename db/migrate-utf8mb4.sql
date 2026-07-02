@@ -2,7 +2,7 @@
 -- to utf8mb4 so 4-byte emoji (habit icons, notes, etc.) can be stored.
 -- Safe to run on MySQL 5.5+. Run once.
 
-ALTER DATABASE bookkeeping CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci;
+ ALTER DATABASE bookkeeping CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci;
 
 USE bookkeeping;
 
