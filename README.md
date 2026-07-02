@@ -32,7 +32,9 @@ A mobile-style, single-account-per-login personal app: **bookkeeping + budgets +
 - 4 switchable visualizations: **Grid** (contribution heatmap) · **Ring** (last-30-day %) · **Week** · **Month** calendar.
 
 **Daily checklist**
-- 📋 Per-day to-do list with a completion progress bar; navigate day by day.
+- 📋 Per-day to-do list; navigate day by day, inline-edit, check off tasks.
+- 🚩 **Priority** flags (low / medium / high) with a color-coded flag you can tap to cycle; optional **date + time range** (start~end) per task.
+- ↕️ **Sort** by priority or by time; two **layout views** — a stacked list with a progress bar, or a **completion ring** (color shifts red→green with progress) on the left beside the tasks. Chosen view is remembered.
 
 **Timer**
 - ⏲️ Circular **countdown** timer + ⏱️ **stopwatch** (with laps); alarm + vibration; survives refresh.
@@ -85,7 +87,7 @@ Record JSON: `{ "type": "expense", "category": "Dining", "amount": 120.50, "date
 - `account_record` — id, user_id, type, category, amount, record_date, note, created_at · index `(user_id, record_date)`
 - `habit` — id, user_id, name, icon, color, created_at
 - `habit_checkin` — id, habit_id, checkin_date · unique `(habit_id, checkin_date)`
-- `todo_item` — id, user_id, todo_date, content, done, created_at
+- `todo_item` — id, user_id, todo_date, content, done, **priority** (0/1/2), **start_time**, **end_time** (`"HH:mm"`), created_at · index `(user_id, todo_date)`
 - `budget` — id, user_id, category (`""` = overall), monthly_limit · unique `(user_id, category)`
 - `recurring_rule` — id, user_id, type, category, amount, note, frequency, next_run_date, active, created_at
 

@@ -32,7 +32,9 @@
 - 4 种可切换视图:**Grid**(贡献热力图)· **Ring**(近 30 天完成率)· **Week**(本周)· **Month**(当月日历)。
 
 **每日清单**
-- 📋 按天的待办清单,带完成进度条;可逐天前后切换。
+- 📋 按天的待办清单;可逐天前后切换、行内编辑、勾选完成。
+- 🚩 **优先级**旗子(低 / 中 / 高),彩色小旗子点一下即循环切换;每项可选 **日期 + 时间段**(开始~结束)。
+- ↕️ 支持**按优先级 / 按时间排序**;两种**视图**切换 —— 带进度条的竖排列表,或**左侧完成度圆环**(颜色随完成度红→绿渐变)配右侧事项。所选视图会被记住。
 
 **计时器**
 - ⏲️ 圆环**倒计时** + ⏱️ **秒表**(支持计圈);结束响铃 + 震动;刷新后保持。
@@ -85,7 +87,7 @@
 - `account_record` — id、user_id、type、category、amount、record_date、note、created_at · 索引 `(user_id, record_date)`
 - `habit` — id、user_id、name、icon、color、created_at
 - `habit_checkin` — id、habit_id、checkin_date · 唯一键 `(habit_id, checkin_date)`
-- `todo_item` — id、user_id、todo_date、content、done、created_at
+- `todo_item` — id、user_id、todo_date、content、done、**priority**(0/1/2)、**start_time**、**end_time**(`"HH:mm"`)、created_at · 索引 `(user_id, todo_date)`
 - `budget` — id、user_id、category(`""` 表示整体预算)、monthly_limit · 唯一键 `(user_id, category)`
 - `recurring_rule` — id、user_id、type、category、amount、note、frequency、next_run_date、active、created_at
 
