@@ -90,6 +90,8 @@ const messages = {
     'acct.confirmClear': "Delete ALL of {name}'s records? This cannot be undone.",
     'acct.confirmImport': 'Importing will REPLACE all your current data with this backup. Continue?',
     'acct.deleteAll': 'Delete all', 'acct.importReplace': 'Import & replace',
+    'acct.importChoose': 'How would you like to import this backup?',
+    'acct.mergeBtn': 'Merge (keep current)', 'acct.replaceBtn': 'Replace all',
 
     'weather.setLocation': 'Set weather location', 'weather.useMyLocation': '📍 Use my location',
     'weather.searchPh': 'Search a city…', 'weather.myLocation': 'My location',
@@ -183,6 +185,8 @@ const messages = {
     'acct.confirmClear': '删除 {name} 的全部记录?此操作不可撤销。',
     'acct.confirmImport': '导入将用该备份替换你当前的全部数据,继续吗?',
     'acct.deleteAll': '全部删除', 'acct.importReplace': '导入并替换',
+    'acct.importChoose': '要如何导入这份备份?',
+    'acct.mergeBtn': '合并(保留现有)', 'acct.replaceBtn': '替换全部',
 
     'weather.setLocation': '设置天气位置', 'weather.useMyLocation': '📍 使用我的定位',
     'weather.searchPh': '搜索城市…', 'weather.myLocation': '我的位置',

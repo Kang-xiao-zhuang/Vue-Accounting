@@ -30,6 +30,7 @@
 </template>
 
 <script>
+import api from './api'
 import TabBar from './components/TabBar.vue'
 import EntrySheet from './components/EntrySheet.vue'
 import Toast from './components/Toast.vue'
@@ -85,6 +86,7 @@ export default {
       try {
         await this.authStore.fetchMe() // validates the stored token + refreshes account info
         await this.recurringStore.run() // materialize any due recurring records before loading
+        await this.hydrateTimer() // pull cross-device timer/stopwatch state into localStorage
         await Promise.all([
           this.recordsStore.load(), this.habitsStore.load(),
           this.todosStore.load(), this.budgetsStore.load()
@@ -100,6 +102,15 @@ export default {
       if (editingId) await this.recordsStore.update(editingId, payload)
       else await this.recordsStore.create(payload)
       this.ui.close()
+    },
+    async hydrateTimer() {
+      try {
+        const s = await api.getState('timer')
+        if (!s) return
+        const obj = JSON.parse(s)
+        if (obj.timer) localStorage.setItem('bookkeeping-timer', JSON.stringify(obj.timer))
+        if (obj.stopwatch) localStorage.setItem('bookkeeping-stopwatch', JSON.stringify(obj.stopwatch))
+      } catch (e) { /* offline / no state — keep local */ }
     }
   },
   mounted() {

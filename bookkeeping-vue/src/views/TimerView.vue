@@ -89,6 +89,7 @@
 
 <script>
 import { t } from '../i18n'
+import api from '../api'
 
 const RO = 92, RI = 64, SW = 11
 const CO = 2 * Math.PI * RO
@@ -368,6 +369,7 @@ export default {
           remainingSec: this.remainingSec, status: this.status, endAt: this.endAt
         }))
       } catch (e) { /* ignore */ }
+      this.pushRemote()
     },
     persistSw() {
       try {
@@ -376,6 +378,20 @@ export default {
           startedAt: this.swStartedAt, laps: this.swLaps
         }))
       } catch (e) { /* ignore */ }
+      this.pushRemote()
+    },
+    /** Debounced sync of timer + stopwatch state to the backend for cross-device continuity. */
+    pushRemote() {
+      clearTimeout(this._syncId)
+      this._syncId = setTimeout(() => {
+        try {
+          const payload = {
+            timer: JSON.parse(localStorage.getItem(STORE_KEY) || 'null'),
+            stopwatch: JSON.parse(localStorage.getItem(SW_KEY) || 'null')
+          }
+          api.putState('timer', JSON.stringify(payload)).catch(() => {})
+        } catch (e) { /* ignore */ }
+      }, 800)
     },
     restore() {
       let s

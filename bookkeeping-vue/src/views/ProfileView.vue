@@ -83,6 +83,12 @@
       <input ref="file" type="file" accept="application/json,.json" class="hidden-file" @change="onFile" />
     </div>
 
+    <BottomSheet :visible="importSheet" :title="$t('acct.import')" @close="importSheet = false">
+      <p class="import-hint">{{ $t('acct.importChoose') }}</p>
+      <button class="btn-plain" @click="doImport('merge')">{{ $t('acct.mergeBtn') }}</button>
+      <button class="btn-clear import-replace" @click="doImport('replace')">{{ $t('acct.replaceBtn') }}</button>
+    </BottomSheet>
+
     <button class="btn-clear" @click="clearRecords">
       {{ $t('acct.clear') }}
     </button>
@@ -113,7 +119,7 @@ export default {
     return { authStore: useAuthStore(), recordsStore: useRecordsStore(), currencyOptions, themes, setCustom, languages }
   },
   data() {
-    return { busy: false, themeSheet: false, currencySheet: false }
+    return { busy: false, themeSheet: false, currencySheet: false, importSheet: false, pendingBackup: null }
   },
   computed: {
     user() { return this.authStore.user },
@@ -183,14 +189,19 @@ export default {
         toast.error(t('acct.notJson'))
         return
       }
-      if (!(await confirmDialog(t('acct.confirmImport'), { danger: true, confirmText: t('acct.importReplace') }))) return
+      this.pendingBackup = data
+      this.importSheet = true
+    },
+    async doImport(mode) {
+      this.importSheet = false
+      if (!this.pendingBackup) return
       this.busy = true
       try {
-        await api.restore(data)
+        await api.restore(this.pendingBackup, mode)
         toast.success(t('acct.restored'))
         setTimeout(() => window.location.reload(), 600)
       } catch (err) { /* handled by interceptor */ }
-      finally { this.busy = false }
+      finally { this.busy = false; this.pendingBackup = null }
     }
   }
 }
@@ -255,6 +266,9 @@ export default {
 }
 .btn-clear:hover { background: var(--expense); color: #fff; border-color: var(--expense); }
 .btn-logout:hover { background: var(--input); color: var(--text); border-color: var(--primary); }
+
+.import-hint { font-size: 14px; color: var(--muted); }
+.import-replace { margin-top: 0; }
 
 .backup-row { display: flex; gap: 10px; margin-top: 12px; }
 .btn-plain {

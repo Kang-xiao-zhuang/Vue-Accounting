@@ -57,20 +57,25 @@ public class BackupService {
         return data;
     }
 
-    /** Replaces ALL of the user's data with the backup contents. */
+    /**
+     * Import backup data. mode "replace" (default) wipes the user's existing data first;
+     * mode "merge" keeps existing data and appends the backup on top.
+     */
     @Transactional
-    public void restore(Long userId, BackupData data) {
-        // Wipe existing data for this user.
-        List<Habit> oldHabits = habitMapper.selectList(new LambdaQueryWrapper<Habit>().eq(Habit::getUserId, userId));
-        List<Long> oldHabitIds = oldHabits.stream().map(Habit::getId).collect(Collectors.toList());
-        if (!oldHabitIds.isEmpty()) {
-            checkinMapper.delete(new LambdaQueryWrapper<HabitCheckin>().in(HabitCheckin::getHabitId, oldHabitIds));
+    public void restore(Long userId, BackupData data, boolean merge) {
+        if (!merge) {
+            // Wipe existing data for this user.
+            List<Habit> oldHabits = habitMapper.selectList(new LambdaQueryWrapper<Habit>().eq(Habit::getUserId, userId));
+            List<Long> oldHabitIds = oldHabits.stream().map(Habit::getId).collect(Collectors.toList());
+            if (!oldHabitIds.isEmpty()) {
+                checkinMapper.delete(new LambdaQueryWrapper<HabitCheckin>().in(HabitCheckin::getHabitId, oldHabitIds));
+            }
+            habitMapper.delete(new LambdaQueryWrapper<Habit>().eq(Habit::getUserId, userId));
+            recordMapper.delete(eqUser(userId));
+            todoMapper.delete(new LambdaQueryWrapper<TodoItem>().eq(TodoItem::getUserId, userId));
+            budgetMapper.delete(new LambdaQueryWrapper<Budget>().eq(Budget::getUserId, userId));
+            ruleMapper.delete(new LambdaQueryWrapper<RecurringRule>().eq(RecurringRule::getUserId, userId));
         }
-        habitMapper.delete(new LambdaQueryWrapper<Habit>().eq(Habit::getUserId, userId));
-        recordMapper.delete(eqUser(userId));
-        todoMapper.delete(new LambdaQueryWrapper<TodoItem>().eq(TodoItem::getUserId, userId));
-        budgetMapper.delete(new LambdaQueryWrapper<Budget>().eq(Budget::getUserId, userId));
-        ruleMapper.delete(new LambdaQueryWrapper<RecurringRule>().eq(RecurringRule::getUserId, userId));
 
         if (data == null) {
             return;
@@ -95,9 +100,20 @@ public class BackupService {
         }
         if (data.getBudgets() != null) {
             for (Budget b : data.getBudgets()) {
-                b.setId(null);
-                b.setUserId(userId);
-                budgetMapper.insert(b);
+                String cat = b.getCategory() == null ? "" : b.getCategory();
+                Budget existing = merge
+                        ? budgetMapper.selectOne(new LambdaQueryWrapper<Budget>()
+                            .eq(Budget::getUserId, userId).eq(Budget::getCategory, cat))
+                        : null;
+                if (existing != null) {
+                    existing.setMonthlyLimit(b.getMonthlyLimit());
+                    budgetMapper.updateById(existing);
+                } else {
+                    b.setId(null);
+                    b.setUserId(userId);
+                    b.setCategory(cat);
+                    budgetMapper.insert(b);
+                }
             }
         }
         if (data.getRecurring() != null) {

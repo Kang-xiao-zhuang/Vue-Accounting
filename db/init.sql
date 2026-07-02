@@ -77,6 +77,17 @@ CREATE TABLE IF NOT EXISTS budget (
   UNIQUE KEY uk_budget_user_cat (user_id, category)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Generic per-user key/value state (e.g. timer/stopwatch) for cross-device sync.
+CREATE TABLE IF NOT EXISTS user_state (
+  id         BIGINT       NOT NULL AUTO_INCREMENT,
+  user_id    BIGINT,
+  state_key  VARCHAR(64)  NOT NULL,
+  content    TEXT,
+  updated_at DATETIME,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_user_state (user_id, state_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Recurring transaction rules; the app materializes AccountRecords from these.
 CREATE TABLE IF NOT EXISTS recurring_rule (
   id            BIGINT        NOT NULL AUTO_INCREMENT,
