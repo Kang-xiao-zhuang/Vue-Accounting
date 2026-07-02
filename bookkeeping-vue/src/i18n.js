@@ -36,12 +36,16 @@ const messages = {
     'rec.exportCsv': '⬇ CSV',
 
     'add.title': 'Add Record', 'add.hint': 'Tap a category to add a {type}.', 'add.recurring': '🔁 Recurring',
+    'add.frequent': 'FREQUENT',
 
     'sheet.new': 'New Record', 'sheet.edit': 'Edit Record', 'sheet.optional': 'Optional...',
+    'sheet.clearAmount': 'Clear amount',
     'sheet.save': '✓ Save', 'sheet.update': '✓ Update',
 
     'stats.title': 'Statistics', 'stats.budgets': '🎯 Budgets',
     'chart.breakdown': 'Breakdown by Category', 'chart.total': 'Total {type}', 'chart.noData': 'No {type} data for this period.',
+    'chart.count': '{n} records', 'chart.drillHint': 'Tap a category to see its records',
+    'mcompare.title': 'This Month vs Last', 'mcompare.vsLast': 'vs last month', 'mcompare.lastMonth': 'Last:', 'mcompare.new': 'NEW',
     'trend.title': '6-Month Trend',
 
     'budget.title': 'Budgets', 'budget.overall': 'Overall monthly budget', 'budget.remove': 'Remove',
@@ -58,6 +62,7 @@ const messages = {
 
     'habit.title': 'Habits', 'habit.new': 'New habit', 'habit.editName': 'Edit habit name...', 'habit.newName': 'New habit name...',
     'habit.addBtn': '＋ Add Habit', 'habit.saveBtn': '✓ Save', 'habit.icon': 'Icon', 'habit.color': 'Color',
+    'habit.weeklyGoal': 'Weekly goal (times/week)', 'habit.goalNone': 'None',
     'habit.none': 'No habits yet. Tap ＋ to create one and start your streak!',
     'habit.viewGrid': '▦ Grid', 'habit.viewRing': '◍ Ring', 'habit.viewWeek': '● Week', 'habit.viewMonth': '🗓 Month',
     'habit.best': 'best', 'habit.day': 'day', 'habit.days': 'days', 'habit.ringSub': '{n}/30 days', 'habit.doneFab': 'done!',
@@ -65,7 +70,7 @@ const messages = {
 
     'todo.title': 'Daily Checklist', 'todo.addPh': 'Add a task for this day...',
     'todo.done': '{done} / {total} done', 'todo.none': 'Nothing for this day yet. Add your first task above! ✨',
-    'todo.byPriority': 'By priority', 'todo.byTime': 'By time', 'todo.priority': 'Priority',
+    'todo.byPriority': 'By priority', 'todo.byTime': 'By time', 'todo.priority': 'Priority', 'todo.addTime': '+ Time',
 
     'timer.title': 'Timer', 'timer.stopwatch': 'Stopwatch', 'timer.modeTimer': '⏲️ Timer', 'timer.modeStopwatch': '⏱️ Stopwatch',
     'timer.remaining': 'Remaining', 'timer.paused': 'Paused', 'timer.timesUp': "Time's up!", 'timer.setHint': 'Outer = min · inner = sec',
@@ -142,12 +147,16 @@ const messages = {
     'rec.exportCsv': '⬇ 导出 CSV',
 
     'add.title': '记一笔', 'add.hint': '点一个分类来记{type}。', 'add.recurring': '🔁 周期',
+    'add.frequent': '常用',
 
     'sheet.new': '新增记录', 'sheet.edit': '编辑记录', 'sheet.optional': '选填...',
+    'sheet.clearAmount': '清空金额',
     'sheet.save': '✓ 保存', 'sheet.update': '✓ 更新',
 
     'stats.title': '统计', 'stats.budgets': '🎯 预算',
     'chart.breakdown': '分类占比', 'chart.total': '{type}合计', 'chart.noData': '本期没有{type}数据。',
+    'chart.count': '{n} 笔', 'chart.drillHint': '点一个分类查看明细',
+    'mcompare.title': '本月 vs 上月', 'mcompare.vsLast': '较上月', 'mcompare.lastMonth': '上月', 'mcompare.new': '新增',
     'trend.title': '近 6 个月趋势',
 
     'budget.title': '预算', 'budget.overall': '整体月度预算', 'budget.remove': '移除',
@@ -164,6 +173,7 @@ const messages = {
 
     'habit.title': '习惯', 'habit.new': '新建习惯', 'habit.editName': '编辑习惯名称...', 'habit.newName': '新习惯名称...',
     'habit.addBtn': '＋ 添加习惯', 'habit.saveBtn': '✓ 保存', 'habit.icon': '图标', 'habit.color': '颜色',
+    'habit.weeklyGoal': '每周目标(次/周)', 'habit.goalNone': '不限',
     'habit.none': '还没有习惯。点 ＋ 创建一个,开始你的连续打卡!',
     'habit.viewGrid': '▦ 网格', 'habit.viewRing': '◍ 圆环', 'habit.viewWeek': '● 本周', 'habit.viewMonth': '🗓 月历',
     'habit.best': '最佳', 'habit.day': '天', 'habit.days': '天', 'habit.ringSub': '{n}/30 天', 'habit.doneFab': '打卡!',
@@ -171,7 +181,7 @@ const messages = {
 
     'todo.title': '每日清单', 'todo.addPh': '添加今天的一项任务...',
     'todo.done': '{done} / {total} 已完成', 'todo.none': '今天还没有任务,在上方添加第一项吧! ✨',
-    'todo.byPriority': '按优先级', 'todo.byTime': '按时间', 'todo.priority': '优先级',
+    'todo.byPriority': '按优先级', 'todo.byTime': '按时间', 'todo.priority': '优先级', 'todo.addTime': '设置时间',
 
     'timer.title': '计时器', 'timer.stopwatch': '秒表', 'timer.modeTimer': '⏲️ 计时器', 'timer.modeStopwatch': '⏱️ 秒表',
     'timer.remaining': '剩余', 'timer.paused': '已暂停', 'timer.timesUp': '时间到!', 'timer.setHint': '外环 = 分 · 内环 = 秒',

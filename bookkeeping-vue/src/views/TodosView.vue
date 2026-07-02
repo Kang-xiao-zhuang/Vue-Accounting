@@ -93,7 +93,16 @@
             @blur="saveEdit"
           />
           <span v-else class="todo-text" @click="startEdit(t)">{{ t.text }}</span>
-          <span v-if="t.startTime" class="todo-time">🕒 {{ t.startTime }}<template v-if="t.endTime">~{{ t.endTime }}</template></span>
+
+          <div v-if="editingTimeId === t.id" class="time-edit">
+            <input type="time" v-model="timeStart" />
+            <span class="te-tilde">~</span>
+            <input type="time" v-model="timeEnd" />
+            <button class="te-ok" @click="saveTime(t)" aria-label="Save time">✓</button>
+            <button class="te-cancel" @click="editingTimeId = null" aria-label="Cancel">✕</button>
+          </div>
+          <span v-else-if="t.startTime" class="todo-time" @click="startEditTime(t)">🕒 {{ t.startTime }}<template v-if="t.endTime">~{{ t.endTime }}</template></span>
+          <button v-else class="add-time-btn" @click="startEditTime(t)">🕒 {{ $t('todo.addTime') }}</button>
         </div>
 
         <button class="del" title="Delete" :aria-label="'Delete task ' + t.text" @click="store.remove(t.id)">🗑</button>
@@ -114,7 +123,9 @@ export default {
   data() {
     return {
       newText: '', newPriority: 0, newDate: '', newStart: '', newEnd: '',
-      editingId: null, editText: '', sortMode: 'priority',
+      editingId: null, editText: '',
+      editingTimeId: null, timeStart: '', timeEnd: '',
+      sortMode: 'priority',
       layout: localStorage.getItem('bookkeeping-todo-layout') === 'ring' ? 'ring' : 'list'
     }
   },
@@ -157,6 +168,16 @@ export default {
     },
     cyclePriority(t) {
       this.store.update(t.id, { priority: (this.pr(t) + 1) % 3 })
+    },
+    startEditTime(t) {
+      this.editingTimeId = t.id
+      this.timeStart = t.startTime || ''
+      this.timeEnd = t.endTime || ''
+    },
+    saveTime(t) {
+      // Empty string clears the time (the backend's null-safe update treats "" as a set).
+      this.store.update(t.id, { startTime: this.timeStart || '', endTime: this.timeEnd || '' })
+      this.editingTimeId = null
     },
     toggleLayout() {
       this.layout = this.layout === 'ring' ? 'list' : 'ring'
@@ -283,8 +304,22 @@ export default {
 .todo-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .todo-text { font-size: 15px; cursor: text; word-break: break-word; }
 .todo-item.done .todo-text { text-decoration: line-through; color: var(--muted); }
-.todo-time { font-size: 12px; color: var(--muted); }
-.edit-input { width: 100%; padding: 6px 8px; font-size: 15px; }
+.todo-time { font-size: 12px; color: var(--muted); cursor: pointer; align-self: flex-start; }
+.todo-time:hover { color: var(--primary); }
+.add-time-btn {
+  align-self: flex-start; background: none; border: none; padding: 2px 0;
+  font-size: 12px; color: var(--muted); cursor: pointer;
+}
+.add-time-btn:hover { color: var(--primary); }
+.time-edit { display: flex; align-items: center; gap: 5px; margin-top: 4px; flex-wrap: wrap; }
+.time-edit input[type="time"] { width: auto; padding: 4px 6px; font-size: 12px; border-radius: 7px; }
+.time-edit .te-tilde { color: var(--muted); }
+.time-edit .te-ok, .time-edit .te-cancel {
+  width: 26px; height: 26px; border: 1px solid var(--border); background: var(--input);
+  border-radius: 7px; cursor: pointer; font-size: 12px; line-height: 1;
+}
+.time-edit .te-ok { color: var(--income); border-color: var(--income); }
+.time-edit .te-cancel { color: var(--muted); }
 
 .del {
   flex-shrink: 0; background: none; border: none; color: var(--muted);

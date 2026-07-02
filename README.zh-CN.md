@@ -2,7 +2,7 @@
 
 [English](README.md) · **中文**
 
-一个手机样式的个人应用(每个登录账号独立):**记账 + 预算 + 周期交易 + 习惯打卡 + 每日清单 + 计时器/秒表**。JWT 鉴权,可作为 PWA 安装。
+一个手机样式的个人应用(每个登录账号独立):**记账 + 预算 + 周期交易 + 习惯打卡 + 每日清单 + 计时器/秒表**。JWT 鉴权,可作为 PWA 安装,也可用 Capacitor 打包成原生 **Android App**。
 
 | 目录 | 技术栈 |
 |------|--------|
@@ -18,9 +18,9 @@
 - 每个用户的数据相互隔离;后端从 token 解析用户身份,并做归属校验。
 
 **记账**
-- ➕ 点分类快速录入 + 底部滑出金额面板(22 个支出 / 9 个收入分类,带 emoji 图标)。
+- ➕ 点分类快速录入 + 底部滑出金额面板(22 个支出 / 9 个收入分类,带 emoji 图标)。**常用分类自动置顶**、**快捷金额键**(+10/+50/+100/+500)、**备注自动补全**(优先同分类历史备注)。
 - 🧾 记录**按日期分组、每日显示净额小计**;支持按备注/分类**搜索**、按类型筛选、按**金额区间**筛选。
-- 📊 统计:日 / 周 / 月 / 全部周期切换,收入·支出·结余汇总卡,**SVG 甜甜圈**分类占比图,以及**近 6 个月收支趋势**柱状图。
+- 📊 统计:日 / 周 / 月 / 全部周期切换,收入·支出·结余汇总卡,**SVG 甜甜圈**分类占比图(**点扇区/图例可钻取该分类明细**),**本月 vs 上月**对比,以及**近 6 个月收支趋势**柱状图。
 - 🎯 **预算**:整体 + 分类月度限额,进度条显示;当月超支时在记录页顶部弹**红色超支提醒**。
 - 🔁 **周期交易**(每日 / 每周 / 每月):按计划自动生成,打开 App 时补齐;支持新增/编辑/暂停/删除。
 - 📥 CSV 导出 · 💾 整库 **JSON 备份与恢复**。
@@ -29,11 +29,12 @@
 
 **习惯**
 - 🔥 习惯带 emoji **图标**、颜色、**当前连续 / 最长连续**天数、累计打卡次数。
+- 🎯 可选**每周目标**(0~7 次/周);卡片显示本周 `已完成/目标` 徽章,达标变绿。
 - 4 种可切换视图:**Grid**(贡献热力图)· **Ring**(近 30 天完成率)· **Week**(本周)· **Month**(当月日历)。
 
 **每日清单**
 - 📋 按天的待办清单;可逐天前后切换、行内编辑、勾选完成。
-- 🚩 **优先级**旗子(低 / 中 / 高),彩色小旗子点一下即循环切换;每项可选 **日期 + 时间段**(开始~结束)。
+- 🚩 **优先级**旗子(低 / 中 / 高),彩色小旗子点一下即循环切换;每项可选 **日期 + 时间段**(开始~结束),**行内随时可改**。
 - ↕️ 支持**按优先级 / 按时间排序**;两种**视图**切换 —— 带进度条的竖排列表,或**左侧完成度圆环**(颜色随完成度红→绿渐变)配右侧事项。所选视图会被记住。
 
 **计时器**
@@ -85,7 +86,7 @@
 ### 数据库表(均为 utf8mb4)
 - `app_user` — id、name(唯一)、password(BCrypt)、created_at
 - `account_record` — id、user_id、type、category、amount、record_date、note、created_at · 索引 `(user_id, record_date)`
-- `habit` — id、user_id、name、icon、color、created_at
+- `habit` — id、user_id、name、icon、color、**weekly_target**(0 表示不限)、created_at
 - `habit_checkin` — id、habit_id、checkin_date · 唯一键 `(habit_id, checkin_date)`
 - `todo_item` — id、user_id、todo_date、content、done、**priority**(0/1/2)、**start_time**、**end_time**(`"HH:mm"`)、created_at · 索引 `(user_id, todo_date)`
 - `budget` — id、user_id、category(`""` 表示整体预算)、monthly_limit · 唯一键 `(user_id, category)`
@@ -124,6 +125,14 @@ npm install
 npm run dev        # http://localhost:5173(把 /api 代理到 :8030,请先启动后端)
 npm run build      # 生产构建 -> dist/
 npm run test       # Vitest 单元测试
+```
+
+### Android App(Capacitor)
+Web 构建通过 **Capacitor** 打包成原生安卓 App(`android/` 工程 + `capacitor.config.json`)。打包后没有 dev 代理,后端地址取自 `VITE_API_BASE`(见 `.env.production`)—— 安卓模拟器用 `http://10.0.2.2:8030/api` 访问本机后端(真机则用电脑局域网 IP)。重新构建并运行:
+```bash
+npm run build
+npx cap sync android
+npx cap open android     # 然后在 Android Studio 里点 Run ▶
 ```
 
 ### 结构

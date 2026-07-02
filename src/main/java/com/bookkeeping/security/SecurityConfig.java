@@ -53,7 +53,9 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cors = new CorsConfiguration();
         cors.setAllowedOrigins(Arrays.asList(
-                "http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"));
+                "http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000",
+                // Capacitor (Android/iOS) WebView origins for the packaged app:
+                "http://localhost", "https://localhost", "capacitor://localhost"));
         cors.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         cors.setAllowedHeaders(Arrays.asList("*"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

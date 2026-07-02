@@ -1,6 +1,7 @@
 package com.bookkeeping.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -24,6 +25,10 @@ public class Habit {
 
     /** Hex color used for the contribution grid, e.g. "#3dd6a3". */
     private String color;
+
+    /** Optional weekly goal: target number of check-ins per week (null/0 = no goal). */
+    @TableField("weekly_target")
+    private Integer weeklyTarget;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;

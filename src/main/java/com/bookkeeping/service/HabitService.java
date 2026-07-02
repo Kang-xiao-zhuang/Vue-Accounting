@@ -67,6 +67,7 @@ public class HabitService {
         } else {
             habit.setIcon(habit.getIcon().trim());
         }
+        habit.setWeeklyTarget(normalizeTarget(habit.getWeeklyTarget()));
         habit.setCreatedAt(LocalDateTime.now());
         habitMapper.insert(habit);
         return new HabitDto(habit, Collections.emptyList());
@@ -83,6 +84,8 @@ public class HabitService {
         if (input.getIcon() != null && !input.getIcon().trim().isEmpty()) {
             existing.setIcon(input.getIcon().trim());
         }
+        // weeklyTarget is always sent by the client, so set it directly (allows clearing back to null).
+        existing.setWeeklyTarget(normalizeTarget(input.getWeeklyTarget()));
         habitMapper.updateById(existing);
         List<String> checkins = checkinMapper.selectList(
                 new LambdaQueryWrapper<HabitCheckin>().eq(HabitCheckin::getHabitId, id)).stream()
@@ -112,6 +115,12 @@ public class HabitService {
         checkin.setCheckinDate(date);
         checkinMapper.insert(checkin);
         return true;
+    }
+
+    /** Clamp the weekly goal to 0..7; 0 means "no goal". Never null so updateById always writes it. */
+    private Integer normalizeTarget(Integer target) {
+        if (target == null || target < 0) return 0;
+        return target > 7 ? 7 : target;
     }
 
     private Habit requireOwnedHabit(Long id, Long userId) {

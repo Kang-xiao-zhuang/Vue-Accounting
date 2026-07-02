@@ -34,17 +34,19 @@ CREATE TABLE IF NOT EXISTS account_record (
 --   ALTER TABLE account_record DROP INDEX idx_account_record_user;   -- old single-column index (optional)
 
 CREATE TABLE IF NOT EXISTS habit (
-  id         BIGINT      NOT NULL AUTO_INCREMENT,
-  user_id    BIGINT,
-  name       VARCHAR(64) NOT NULL,
-  icon       VARCHAR(16),
-  color      VARCHAR(16),
-  created_at DATETIME,
+  id            BIGINT      NOT NULL AUTO_INCREMENT,
+  user_id       BIGINT,
+  name          VARCHAR(64) NOT NULL,
+  icon          VARCHAR(16),
+  color         VARCHAR(16),
+  weekly_target INT         NOT NULL DEFAULT 0,   -- weekly goal (times/week); 0 = no goal
+  created_at    DATETIME,
   PRIMARY KEY (id),
   KEY idx_habit_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
--- If the habit table already exists from before, add the new column:
+-- If the habit table already exists from before, add the new columns:
 --   ALTER TABLE habit ADD COLUMN icon VARCHAR(16) AFTER name;
+--   ALTER TABLE habit ADD COLUMN weekly_target INT NOT NULL DEFAULT 0;
 
 CREATE TABLE IF NOT EXISTS habit_checkin (
   id           BIGINT NOT NULL AUTO_INCREMENT,

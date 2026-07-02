@@ -58,6 +58,31 @@ export const useRecordsStore = defineStore('records', {
     },
     balance() {
       return round2(this.totalIncome - this.totalExpense)
+    },
+    // Usage count per category, keyed "type::category" — powers "frequently used" ordering.
+    categoryCounts(state) {
+      const m = {}
+      for (const r of state.records) {
+        const k = r.type + '::' + r.category
+        m[k] = (m[k] || 0) + 1
+      }
+      return m
+    },
+    // Distinct non-empty notes, most-recent first (for note autocomplete).
+    recentNotes(state) {
+      const sorted = [...state.records].sort((a, b) =>
+        a.date < b.date ? 1 : a.date > b.date ? -1 : (b.id || 0) - (a.id || 0))
+      const seen = new Set()
+      const out = []
+      for (const r of sorted) {
+        const n = (r.note || '').trim()
+        if (n && !seen.has(n)) {
+          seen.add(n)
+          out.push({ note: n, type: r.type, category: r.category })
+          if (out.length >= 20) break
+        }
+      }
+      return out
     }
   },
   actions: {

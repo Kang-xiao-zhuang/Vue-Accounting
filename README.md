@@ -2,7 +2,7 @@
 
 **English** · [中文](README.zh-CN.md)
 
-A mobile-style, single-account-per-login personal app: **bookkeeping + budgets + recurring transactions + habits + a daily checklist + a timer/stopwatch**. JWT auth, installable as a PWA.
+A mobile-style, single-account-per-login personal app: **bookkeeping + budgets + recurring transactions + habits + a daily checklist + a timer/stopwatch**. JWT auth, installable as a PWA or as a native **Android app** (Capacitor).
 
 | Folder | Stack |
 |--------|-------|
@@ -18,9 +18,9 @@ A mobile-style, single-account-per-login personal app: **bookkeeping + budgets +
 - Every user's data is private; the backend derives the user from the token (with ownership checks).
 
 **Bookkeeping**
-- ➕ Tap-a-category entry with a slide-up amount sheet (22 expense / 9 income categories, emoji icons).
+- ➕ Tap-a-category entry with a slide-up amount sheet (22 expense / 9 income categories, emoji icons). **Frequently-used categories float to the top**, **quick-add amount chips** (+10/+50/+100/+500), and **note autocomplete** from your history (same-category notes first).
 - 🧾 Records grouped **by date with daily net subtotals**; search by note/category, filter by type, and by **amount range**.
-- 📊 Stats: Day / Week / Month / All periods, income·expense·balance summary cards, an **SVG donut** category breakdown, and a **6-month income-vs-expense trend** chart.
+- 📊 Stats: Day / Week / Month / All periods, income·expense·balance summary cards, an **SVG donut** category breakdown (**tap a slice/legend to drill into that category's records**), a **this-month-vs-last-month** comparison, and a **6-month income-vs-expense trend** chart.
 - 🎯 **Budgets**: overall + per-category monthly limits with progress bars; a **red overspend alert** on the Records screen when you go over.
 - 🔁 **Recurring transactions** (daily / weekly / monthly): auto-generated on a schedule and caught up on app open; full add/edit/pause/delete.
 - 📥 CSV export · 💾 full **JSON backup & restore**.
@@ -29,11 +29,12 @@ A mobile-style, single-account-per-login personal app: **bookkeeping + budgets +
 
 **Habits**
 - 🔥 Habits with an emoji **icon**, color, current & longest **streaks**, and total check-ins.
+- 🎯 Optional **weekly goal** (0–7 times/week); the card shows a `done/target` chip for the current week that turns green when reached.
 - 4 switchable visualizations: **Grid** (contribution heatmap) · **Ring** (last-30-day %) · **Week** · **Month** calendar.
 
 **Daily checklist**
 - 📋 Per-day to-do list; navigate day by day, inline-edit, check off tasks.
-- 🚩 **Priority** flags (low / medium / high) with a color-coded flag you can tap to cycle; optional **date + time range** (start~end) per task.
+- 🚩 **Priority** flags (low / medium / high) with a color-coded flag you can tap to cycle; optional **date + time range** (start~end) per task, **editable inline** on any row.
 - ↕️ **Sort** by priority or by time; two **layout views** — a stacked list with a progress bar, or a **completion ring** (color shifts red→green with progress) on the left beside the tasks. Chosen view is remembered.
 
 **Timer**
@@ -85,7 +86,7 @@ Record JSON: `{ "type": "expense", "category": "Dining", "amount": 120.50, "date
 ### Database tables (all utf8mb4)
 - `app_user` — id, name (unique), password (BCrypt), created_at
 - `account_record` — id, user_id, type, category, amount, record_date, note, created_at · index `(user_id, record_date)`
-- `habit` — id, user_id, name, icon, color, created_at
+- `habit` — id, user_id, name, icon, color, **weekly_target** (0 = no goal), created_at
 - `habit_checkin` — id, habit_id, checkin_date · unique `(habit_id, checkin_date)`
 - `todo_item` — id, user_id, todo_date, content, done, **priority** (0/1/2), **start_time**, **end_time** (`"HH:mm"`), created_at · index `(user_id, todo_date)`
 - `budget` — id, user_id, category (`""` = overall), monthly_limit · unique `(user_id, category)`
@@ -124,6 +125,14 @@ npm install
 npm run dev        # http://localhost:5173 (proxies /api -> :8030, so start the backend first)
 npm run build      # production build -> dist/
 npm run test       # Vitest unit tests
+```
+
+### Android app (Capacitor)
+The web build is wrapped as a native Android app with **Capacitor** (`android/` project + `capacitor.config.json`). The API base URL comes from `VITE_API_BASE` (see `.env.production`) since there is no dev proxy in the packaged app — `http://10.0.2.2:8030/api` reaches the host machine's backend from the Android emulator (use the PC's LAN IP for a real device). Rebuild & run:
+```bash
+npm run build
+npx cap sync android
+npx cap open android     # then Run ▶ in Android Studio
 ```
 
 ### Structure

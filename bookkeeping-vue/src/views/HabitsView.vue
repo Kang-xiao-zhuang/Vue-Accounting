@@ -36,6 +36,18 @@
           @click="form.color = c"
         ></button>
       </div>
+
+      <div class="picker-label">{{ $t('habit.weeklyGoal') }}</div>
+      <div class="goal-pick">
+        <button
+          v-for="n in [0, 1, 2, 3, 4, 5, 6, 7]"
+          :key="n"
+          class="goal-opt"
+          :class="{ active: form.weeklyTarget === n }"
+          @click="form.weeklyTarget = n"
+        >{{ n === 0 ? $t('habit.goalNone') : n }}</button>
+      </div>
+
       <div class="form-actions">
         <button class="btn-primary" :disabled="!form.name.trim()" @click="submit">
           {{ editingId ? $t('habit.saveBtn') : $t('habit.addBtn') }}
@@ -93,7 +105,7 @@ export default {
       today: todayString(),
       editingId: null,
       showForm: false,
-      form: { name: '', icon: habitIcons[0], color: COLORS[0] },
+      form: { name: '', icon: habitIcons[0], color: COLORS[0], weeklyTarget: 0 },
       view: localStorage.getItem('bookkeeping-habit-view') || 'grid',
       offset: 0,
       views: [
@@ -128,21 +140,21 @@ export default {
     },
     openAdd() {
       this.editingId = null
-      this.form = { name: '', icon: habitIcons[0], color: COLORS[0] }
+      this.form = { name: '', icon: habitIcons[0], color: COLORS[0], weeklyTarget: 0 }
       this.showForm = true
       this.focusName()
     },
     submit() {
       const name = this.form.name.trim()
       if (!name) return
-      const payload = { name, icon: this.form.icon, color: this.form.color }
+      const payload = { name, icon: this.form.icon, color: this.form.color, weeklyTarget: this.form.weeklyTarget }
       if (this.editingId) this.store.update({ id: this.editingId, ...payload })
       else this.store.add(payload)
       this.cancel()
     },
     startEdit(habit) {
       this.editingId = habit.id
-      this.form = { name: habit.name, icon: habit.icon || habitIcons[0], color: habit.color || COLORS[0] }
+      this.form = { name: habit.name, icon: habit.icon || habitIcons[0], color: habit.color || COLORS[0], weeklyTarget: habit.weeklyTarget || 0 }
       this.showForm = true
       window.scrollTo({ top: 0, behavior: 'smooth' })
       this.focusName()
@@ -154,7 +166,7 @@ export default {
     cancel() {
       this.editingId = null
       this.showForm = false
-      this.form = { name: '', icon: habitIcons[0], color: COLORS[0] }
+      this.form = { name: '', icon: habitIcons[0], color: COLORS[0], weeklyTarget: 0 }
     },
     focusName() {
       this.$nextTick(() => { if (this.$refs.name) this.$refs.name.focus() })
@@ -191,6 +203,14 @@ export default {
 }
 .icon-opt:hover { border-color: var(--primary); }
 .icon-opt.active { border-color: var(--primary); background: var(--card); transform: scale(1.05); }
+
+.goal-pick { display: flex; gap: 6px; flex-wrap: wrap; }
+.goal-opt {
+  min-width: 40px; height: 38px; padding: 0 10px; border: 1px solid var(--border); background: var(--input);
+  color: var(--text); border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: .12s;
+}
+.goal-opt:hover { border-color: var(--primary); }
+.goal-opt.active { border-color: var(--primary); background: var(--primary); color: #fff; }
 
 .habit-views { display: flex; gap: 8px; margin-bottom: 14px; }
 .habit-views button {

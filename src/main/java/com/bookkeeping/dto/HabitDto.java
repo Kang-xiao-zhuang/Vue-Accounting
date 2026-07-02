@@ -18,6 +18,7 @@ public class HabitDto {
     private String name;
     private String icon;
     private String color;
+    private Integer weeklyTarget;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
@@ -30,6 +31,7 @@ public class HabitDto {
         this.name = habit.getName();
         this.icon = habit.getIcon();
         this.color = habit.getColor();
+        this.weeklyTarget = habit.getWeeklyTarget();
         this.createdAt = habit.getCreatedAt();
         this.checkins = checkins;
     }

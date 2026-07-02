@@ -5,6 +5,7 @@
         <span class="stat" :class="{ hot: currentStreak > 0 }">🔥 {{ currentStreak }}<span class="stat-unit"> {{ currentStreak === 1 ? $t('habit.day') : $t('habit.days') }}</span></span>
         <span class="stat">🏆 {{ longestStreak }} {{ $t('habit.best') }}</span>
         <span class="stat">✅ {{ total }}</span>
+        <span v-if="weeklyTarget" class="stat goal" :class="{ met: weeklyDone >= weeklyTarget }">🎯 {{ weeklyDone }}/{{ weeklyTarget }}</span>
       </div>
       <div class="hc-actions">
         <button class="icon-btn" @click="$emit('edit')" title="Edit" :aria-label="'Edit habit ' + habit.name">✎</button>
@@ -74,13 +75,12 @@
         :key="d.date"
         class="wk"
         :class="{ checked: d.checked, today: d.today, future: d.future }"
-        :style="d.checked ? { background: habit.color, borderColor: habit.color } : null"
         :disabled="d.future"
         :title="d.date"
         @click="!d.future && $emit('toggle', d.date)"
       >
         <span class="wk-lbl">{{ d.label }}</span>
-        <span class="wk-num">{{ d.dayNum }}</span>
+        <span class="wk-num" :style="d.checked ? { background: habit.color, borderColor: habit.color } : null">{{ d.dayNum }}</span>
       </button>
     </div>
 
@@ -139,6 +139,24 @@ export default {
     },
     longestStreak() {
       return calcLongestStreak(this.habit.checkins)
+    },
+    weeklyTarget() {
+      return Number(this.habit.weeklyTarget) || 0
+    },
+    weeklyDone() {
+      // check-ins in the current (Mon–Sun) week containing today, regardless of the view offset
+      const set = this.checkinSet
+      const base = new Date(this.today + 'T00:00:00')
+      const dow = (base.getDay() + 6) % 7 // Monday = 0
+      const monday = new Date(base)
+      monday.setDate(base.getDate() - dow)
+      let n = 0
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(monday)
+        d.setDate(monday.getDate() + i)
+        if (set.has(fmt(d))) n++
+      }
+      return n
     },
     ring() {
       const set = this.checkinSet
@@ -239,6 +257,7 @@ export default {
   background: var(--input); padding: 3px 8px; border-radius: 999px; white-space: nowrap;
 }
 .hc-stats .stat.hot { color: var(--text); font-weight: 700; }
+.hc-stats .stat.goal.met { color: var(--income); font-weight: 700; }
 .hc-stats .stat-unit { font-size: 11px; opacity: .7; }
 .hc-actions { display: flex; gap: 2px; }
 .icon-btn {

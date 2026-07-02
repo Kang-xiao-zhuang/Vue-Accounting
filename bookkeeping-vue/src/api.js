@@ -10,7 +10,10 @@ let onUnauthorized = () => {}
 export function setUnauthorizedHandler(fn) { onUnauthorized = fn }
 
 // In dev, Vite proxies /api -> http://localhost:8030 (see vite.config.js).
-const http = axios.create({ baseURL: '/api' })
+// In a packaged app (Capacitor) there is no proxy, so VITE_API_BASE must point
+// at a reachable backend, e.g. http://10.0.2.2:8030/api (Android emulator) or
+// http://<PC-LAN-IP>:8030/api (real phone on the same Wi-Fi). See .env.production.
+const http = axios.create({ baseURL: import.meta.env.VITE_API_BASE || '/api' })
 
 // Attach the bearer token to every request.
 http.interceptors.request.use((config) => {

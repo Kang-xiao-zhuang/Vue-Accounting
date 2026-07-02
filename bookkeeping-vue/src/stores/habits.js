@@ -13,15 +13,15 @@ export const useHabitsStore = defineStore('habits', {
         this.habits = await api.listHabits()
       } catch (e) { /* handled by interceptor */ }
     },
-    async add({ name, icon, color }) {
+    async add({ name, icon, color, weeklyTarget }) {
       try {
-        await api.createHabit({ name, icon, color })
+        await api.createHabit({ name, icon, color, weeklyTarget })
         await this.load()
       } catch (e) { /* handled by interceptor */ }
     },
-    async update({ id, name, icon, color }) {
+    async update({ id, name, icon, color, weeklyTarget }) {
       try {
-        await api.updateHabit(id, { name, icon, color })
+        await api.updateHabit(id, { name, icon, color, weeklyTarget })
         await this.load()
       } catch (e) { /* handled by interceptor */ }
     },

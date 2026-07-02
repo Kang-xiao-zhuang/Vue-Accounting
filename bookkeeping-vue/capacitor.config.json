@@ -1,0 +1,9 @@
+{
+  "appId": "com.kang.bookkeeping",
+  "appName": "Daily Bookkeeping",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "http",
+    "cleartext": true
+  }
+}
