@@ -35,16 +35,28 @@ public class TodoService {
         item.setId(null);
         item.setUserId(userId);
         item.setText(item.getText().trim());
+        if (item.getPriority() == null) {
+            item.setPriority(0);
+        }
         item.setCreatedAt(LocalDateTime.now());
         mapper.insert(item);
         return item;
     }
 
-    /** Rename / re-text an item. */
+    /** Update an item's fields (only those provided are changed). */
     public TodoItem update(Long id, TodoItem input, Long userId) {
         TodoItem existing = requireOwned(id, userId);
         if (input.getText() != null && !input.getText().trim().isEmpty()) {
             existing.setText(input.getText().trim());
+        }
+        if (input.getPriority() != null) {
+            existing.setPriority(input.getPriority());
+        }
+        if (input.getStartTime() != null) {
+            existing.setStartTime(input.getStartTime());
+        }
+        if (input.getEndTime() != null) {
+            existing.setEndTime(input.getEndTime());
         }
         mapper.updateById(existing);
         return existing;

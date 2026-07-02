@@ -50,12 +50,19 @@
       <button v-for="v in views" :key="v.key" :class="{ active: view === v.key }" @click="setView(v.key)">{{ $t(v.labelKey) }}</button>
     </div>
 
+    <div v-if="view !== 'grid' && store.habits.length > 0" class="period-nav">
+      <button class="nav-arrow" @click="shiftPeriod(-1)" aria-label="Previous">◀</button>
+      <span class="period-label">{{ navLabel }}</span>
+      <button class="nav-arrow" :disabled="offset >= 0" @click="shiftPeriod(1)" aria-label="Next">▶</button>
+    </div>
+
     <HabitCard
       v-for="h in store.habits"
       :key="h.id"
       :habit="h"
       :today="today"
       :view="view"
+      :offset="offset"
       @toggle="(date) => store.toggle(h.id, date)"
       @edit="startEdit(h)"
       @delete="confirmDelete(h)"
@@ -66,10 +73,10 @@
 <script>
 import HabitCard from '../components/HabitCard.vue'
 import { useHabitsStore } from '../stores/habits'
-import { todayString } from '../utils'
+import { todayString, weekRange, fmt } from '../utils'
 import { habitIcons } from '../categories'
 import { confirmDialog } from '../confirm'
-import { t } from '../i18n'
+import { t, localeDate } from '../i18n'
 
 const COLORS = ['#3dd6a3', '#6d86ff', '#ff6b7a', '#ffb84d', '#a07bff', '#4dd2ff', '#ff8fcf', '#5fd06f']
 
@@ -88,12 +95,30 @@ export default {
       showForm: false,
       form: { name: '', icon: habitIcons[0], color: COLORS[0] },
       view: localStorage.getItem('bookkeeping-habit-view') || 'grid',
+      offset: 0,
       views: [
         { key: 'grid', labelKey: 'habit.viewGrid' },
         { key: 'ring', labelKey: 'habit.viewRing' },
         { key: 'week', labelKey: 'habit.viewWeek' },
         { key: 'month', labelKey: 'habit.viewMonth' }
       ]
+    }
+  },
+  computed: {
+    navLabel() {
+      const base = new Date(this.today + 'T00:00:00')
+      if (this.view === 'week') {
+        const d = new Date(base); d.setDate(base.getDate() + this.offset * 7)
+        const { start, end } = weekRange(d)
+        return fmt(start) + ' – ' + fmt(end)
+      }
+      if (this.view === 'month') {
+        return localeDate(new Date(base.getFullYear(), base.getMonth() + this.offset, 1), { year: 'numeric', month: 'long' })
+      }
+      // ring: 30-day window
+      const end = new Date(base); end.setDate(base.getDate() + this.offset * 30)
+      const start = new Date(end); start.setDate(end.getDate() - 29)
+      return localeDate(start, { month: 'short', day: 'numeric' }) + ' – ' + localeDate(end, { month: 'short', day: 'numeric' })
     }
   },
   methods: {
@@ -136,7 +161,13 @@ export default {
     },
     setView(v) {
       this.view = v
+      this.offset = 0
       localStorage.setItem('bookkeeping-habit-view', v)
+    },
+    shiftPeriod(dir) {
+      const n = this.offset + dir
+      if (n > 0) return // don't navigate into the future
+      this.offset = n
     }
   }
 }
@@ -168,6 +199,15 @@ export default {
   border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer; transition: .12s;
 }
 .habit-views button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+.period-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.period-nav .nav-arrow {
+  width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+  border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 13px; cursor: pointer;
+}
+.period-nav .nav-arrow:hover:not(:disabled) { background: var(--input); border-color: var(--primary); }
+.period-nav .nav-arrow:disabled { opacity: .4; cursor: not-allowed; }
+.period-label { flex: 1; text-align: center; font-size: 13px; font-weight: 600; color: var(--muted); }
 .add-btn {
   width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%;
   background: var(--primary); color: #fff; border: none;

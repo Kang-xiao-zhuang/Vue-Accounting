@@ -31,5 +31,15 @@ public class TodoItem {
 
     private boolean done;
 
+    /** 0 = low, 1 = medium, 2 = high. */
+    private Integer priority;
+
+    /** Optional time range as "HH:mm" strings. */
+    @TableField("start_time")
+    private String startTime;
+
+    @TableField("end_time")
+    private String endTime;
+
     private LocalDateTime createdAt;
 }

@@ -20,6 +20,7 @@ export default {
   data() {
     return {
       items: [
+        { to: '/history', icon: '📜', labelKey: 'more.history', descKey: 'more.historyDesc' },
         { to: '/habits', icon: '🔥', labelKey: 'more.habits', descKey: 'more.habitsDesc' },
         { to: '/daily', icon: '📋', labelKey: 'more.daily', descKey: 'more.dailyDesc' },
         { to: '/timer', icon: '⏲️', labelKey: 'more.timer', descKey: 'more.timerDesc' },

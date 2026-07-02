@@ -31,9 +31,9 @@ export const useTodosStore = defineStore('todos', {
       this.anchor = fmt(t)
     },
     goToday() { this.anchor = this.today },
-    async add(text) {
+    async add(payload) {
       try {
-        await api.createTodo({ text, date: this.anchor })
+        await api.createTodo({ date: this.anchor, priority: 0, ...payload })
         await this.load()
       } catch (e) { /* handled by interceptor */ }
     },
@@ -46,9 +46,9 @@ export const useTodosStore = defineStore('todos', {
         await this.load() // revert; interceptor showed the error
       }
     },
-    async update(id, text) {
+    async update(id, patch) {
       try {
-        await api.updateTodo(id, { text })
+        await api.updateTodo(id, patch)
         await this.load()
       } catch (e) { /* handled by interceptor */ }
     },

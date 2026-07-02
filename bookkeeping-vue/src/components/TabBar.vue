@@ -23,7 +23,7 @@ export default {
         { to: '/add', icon: '➕', labelKey: 'nav.add', match: ['add'] },
         { to: '/stats', icon: '📊', labelKey: 'nav.stats', match: ['stats'] },
         // "More" stays highlighted while on any of its sub-pages.
-        { to: '/more', icon: '⋯', labelKey: 'nav.more', match: ['more', 'habits', 'daily', 'timer', 'budgets', 'recurring', 'me'] }
+        { to: '/more', icon: '⋯', labelKey: 'nav.more', match: ['more', 'habits', 'daily', 'timer', 'budgets', 'recurring', 'history', 'me'] }
       ]
     }
   },

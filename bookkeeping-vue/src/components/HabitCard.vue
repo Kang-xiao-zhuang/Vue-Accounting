@@ -102,6 +102,7 @@
 
 <script>
 import { fmt, currentStreak as calcCurrentStreak, longestStreak as calcLongestStreak } from '../utils'
+import { localeDate } from '../i18n'
 
 const WEEKS = 53
 
@@ -110,7 +111,8 @@ export default {
   props: {
     habit: { type: Object, required: true },
     today: { type: String, required: true },
-    view: { type: String, default: 'grid' } // grid | ring | week
+    view: { type: String, default: 'grid' }, // grid | ring | week | month
+    offset: { type: Number, default: 0 } // period offset for ring/week/month (0 = current, -1 = previous…)
   },
   emits: ['toggle', 'edit', 'delete'],
   data() {
@@ -140,24 +142,28 @@ export default {
     },
     ring() {
       const set = this.checkinSet
-      const today = new Date(this.today + 'T00:00:00')
+      // 30-day window ending `offset*30` days from today (offset 0 = last 30 days).
+      const end = new Date(this.today + 'T00:00:00')
+      end.setDate(end.getDate() + this.offset * 30)
       let done = 0
       for (let i = 0; i < 30; i++) {
-        const d = new Date(today)
-        d.setDate(today.getDate() - i)
+        const d = new Date(end)
+        d.setDate(end.getDate() - i)
         if (set.has(fmt(d))) done++
       }
       return { done, pct: Math.round((done / 30) * 100) }
     },
     monthLabel() {
-      return new Date(this.today + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+      const t = new Date(this.today + 'T00:00:00')
+      return localeDate(new Date(t.getFullYear(), t.getMonth() + this.offset, 1), { month: 'long', year: 'numeric' })
     },
     monthGrid() {
       const set = this.checkinSet
-      const today = new Date(this.today + 'T00:00:00')
-      const year = today.getFullYear()
-      const month = today.getMonth()
-      const startDow = (new Date(year, month, 1).getDay() + 6) % 7 // Monday = 0
+      const t = new Date(this.today + 'T00:00:00')
+      const first = new Date(t.getFullYear(), t.getMonth() + this.offset, 1)
+      const year = first.getFullYear()
+      const month = first.getMonth()
+      const startDow = (first.getDay() + 6) % 7 // Monday = 0
       const daysInMonth = new Date(year, month + 1, 0).getDate()
       const cells = []
       for (let i = 0; i < startDow; i++) cells.push(null)
@@ -170,10 +176,11 @@ export default {
     },
     weekDays() {
       const set = this.checkinSet
-      const today = new Date(this.today + 'T00:00:00')
-      const dow = (today.getDay() + 6) % 7 // Monday = 0
-      const monday = new Date(today)
-      monday.setDate(today.getDate() - dow)
+      const base = new Date(this.today + 'T00:00:00')
+      base.setDate(base.getDate() + this.offset * 7)
+      const dow = (base.getDay() + 6) % 7 // Monday = 0
+      const monday = new Date(base)
+      monday.setDate(base.getDate() - dow)
       const labels = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
       const out = []
       for (let i = 0; i < 7; i++) {

@@ -14,6 +14,7 @@ const routes = [
   { path: '/more', name: 'more', component: () => import('../views/MoreView.vue') },
   { path: '/budgets', name: 'budgets', component: () => import('../views/BudgetsView.vue') },
   { path: '/recurring', name: 'recurring', component: () => import('../views/RecurringView.vue') },
+  { path: '/history', name: 'history', component: () => import('../views/HistoryView.vue') },
   { path: '/me', name: 'me', component: () => import('../views/ProfileView.vue') },
   { path: '/:pathMatch(.*)*', redirect: '/records' }
 ]

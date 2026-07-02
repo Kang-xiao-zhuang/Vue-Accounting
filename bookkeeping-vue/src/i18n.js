@@ -65,6 +65,7 @@ const messages = {
 
     'todo.title': 'Daily Checklist', 'todo.addPh': 'Add a task for this day...',
     'todo.done': '{done} / {total} done', 'todo.none': 'Nothing for this day yet. Add your first task above! ✨',
+    'todo.byPriority': 'By priority', 'todo.byTime': 'By time', 'todo.priority': 'Priority',
 
     'timer.title': 'Timer', 'timer.stopwatch': 'Stopwatch', 'timer.modeTimer': '⏲️ Timer', 'timer.modeStopwatch': '⏱️ Stopwatch',
     'timer.remaining': 'Remaining', 'timer.paused': 'Paused', 'timer.timesUp': "Time's up!", 'timer.setHint': 'Outer = min · inner = sec',
@@ -78,6 +79,9 @@ const messages = {
     'more.budgets': 'Budgets', 'more.budgetsDesc': 'Monthly spending limits',
     'more.recurring': 'Recurring', 'more.recurringDesc': 'Auto-generated entries',
     'more.account': 'Account', 'more.accountDesc': 'Profile & log out',
+    'more.history': 'All records', 'more.historyDesc': 'Search & browse full history',
+    'history.title': 'All records', 'history.empty': 'No records found.',
+    'history.pageOf': 'Page {c} / {p}', 'history.count': '{n} total', 'history.from': 'From', 'history.to': 'To',
 
     'acct.title': 'Account', 'acct.signedIn': 'Signed in', 'acct.currency': 'Currency symbol',
     'acct.theme': 'Theme', 'acct.chooseTheme': 'Choose theme', 'acct.chooseCurrency': 'Choose currency',
@@ -167,6 +171,7 @@ const messages = {
 
     'todo.title': '每日清单', 'todo.addPh': '添加今天的一项任务...',
     'todo.done': '{done} / {total} 已完成', 'todo.none': '今天还没有任务,在上方添加第一项吧! ✨',
+    'todo.byPriority': '按优先级', 'todo.byTime': '按时间', 'todo.priority': '优先级',
 
     'timer.title': '计时器', 'timer.stopwatch': '秒表', 'timer.modeTimer': '⏲️ 计时器', 'timer.modeStopwatch': '⏱️ 秒表',
     'timer.remaining': '剩余', 'timer.paused': '已暂停', 'timer.timesUp': '时间到!', 'timer.setHint': '外环 = 分 · 内环 = 秒',
@@ -180,6 +185,9 @@ const messages = {
     'more.budgets': '预算', 'more.budgetsDesc': '每月支出限额',
     'more.recurring': '周期交易', 'more.recurringDesc': '自动生成的记录',
     'more.account': '账号', 'more.accountDesc': '资料与退出登录',
+    'more.history': '全部记录', 'more.historyDesc': '搜索与浏览完整历史',
+    'history.title': '全部记录', 'history.empty': '没有找到记录。',
+    'history.pageOf': '第 {c} / {p} 页', 'history.count': '共 {n} 条', 'history.from': '起', 'history.to': '止',
 
     'acct.title': '账号', 'acct.signedIn': '已登录', 'acct.currency': '货币符号',
     'acct.theme': '主题', 'acct.chooseTheme': '选择主题', 'acct.chooseCurrency': '选择货币',

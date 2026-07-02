@@ -62,10 +62,16 @@ CREATE TABLE IF NOT EXISTS todo_item (
   todo_date  DATE         NOT NULL,
   content    VARCHAR(255) NOT NULL,
   done       TINYINT(1)   NOT NULL DEFAULT 0,
+  priority   INT          NOT NULL DEFAULT 0,   -- 0 low, 1 medium, 2 high
+  start_time VARCHAR(5),                        -- "HH:mm"
+  end_time   VARCHAR(5),
   created_at DATETIME,
   PRIMARY KEY (id),
   KEY idx_todo_user_date (user_id, todo_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- Existing todo_item table: add the new columns with:
+--   ALTER TABLE todo_item ADD COLUMN priority INT NOT NULL DEFAULT 0,
+--     ADD COLUMN start_time VARCHAR(5), ADD COLUMN end_time VARCHAR(5);
 
 -- Monthly budgets. An empty category means the overall monthly budget.
 CREATE TABLE IF NOT EXISTS budget (
