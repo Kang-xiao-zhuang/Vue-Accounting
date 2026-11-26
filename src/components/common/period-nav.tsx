@@ -31,7 +31,7 @@ export function PeriodNav() {
             type="button"
             onClick={() => setPeriod(p)}
             className={cn(
-              "flex-1 whitespace-nowrap rounded-btn px-3 py-1.5 text-xs font-medium transition-colors",
+              "h-10 flex-1 whitespace-nowrap rounded-btn px-3 text-xs font-medium transition-colors",
               period === p ? "bg-primary text-white" : "bg-input text-muted hover:text-text",
             )}
           >
@@ -45,7 +45,7 @@ export function PeriodNav() {
           aria-label="上一期"
           disabled={period === "all"}
           onClick={() => shift(-1)}
-          className="flex h-8 w-8 items-center justify-center rounded-btn border border-line text-text disabled:opacity-30"
+          className="flex h-10 w-10 items-center justify-center rounded-btn border border-line text-text disabled:opacity-30"
         >
           <ChevronLeft size={18} />
         </button>
@@ -62,7 +62,7 @@ export function PeriodNav() {
           aria-label="下一期"
           disabled={period === "all"}
           onClick={() => shift(1)}
-          className="flex h-8 w-8 items-center justify-center rounded-btn border border-line text-text disabled:opacity-30"
+          className="flex h-10 w-10 items-center justify-center rounded-btn border border-line text-text disabled:opacity-30"
         >
           <ChevronRight size={18} />
         </button>

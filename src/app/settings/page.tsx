@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { Database, Download, FileUp, HardDrive, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Database, Download, FileUp, HardDrive, ShieldAlert, Trash2 } from "lucide-react";
 import type { BackupPayload, ThemeKey } from "@/types";
 import { CURRENCY_OPTIONS } from "@/lib/money";
 import { formatBytes, STORAGE_QUOTA, storageUsage } from "@/lib/storage";
@@ -34,6 +34,16 @@ export default function SettingsPage() {
 
   const used = storageUsage();
   const usagePct = Math.min(100, Math.round((used / STORAGE_QUOTA) * 100));
+
+  // 纯本地存储没有云端兜底，超过 30 天没导出就主动提醒一次。
+  // mounted 门控：构建期静态渲染拿不到 localStorage，避免水合前后 DOM 不一致。
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const recordCount = useRecordsStore((s) => s.records.length);
+  const daysSinceExport = exportedAt
+    ? Math.floor((Date.now() - new Date(exportedAt).getTime()) / 86_400_000)
+    : null;
+  const backupDue = mounted && recordCount > 0 && (daysSinceExport === null || daysSinceExport >= 30);
 
   const exportJson = async () => {
     const payload = buildBackup(
@@ -184,6 +194,21 @@ export default function SettingsPage() {
         <section>
           <h2 className="mb-2 flex items-center gap-2 text-sm font-medium text-text"><Database size={16} /> {t("settings.data")}</h2>
           <div className="space-y-2">
+            {backupDue && (
+              <div className="flex items-start gap-2 rounded-card border border-primary bg-primary/10 p-3">
+                <ShieldAlert size={16} className="mt-0.5 shrink-0 text-primary" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs leading-relaxed text-text">
+                    {daysSinceExport === null
+                      ? t("settings.backupNever")
+                      : t("settings.backupStale", { d: daysSinceExport })}
+                  </p>
+                  <button type="button" onClick={exportJson} className="mt-2 rounded-btn bg-primary px-3 py-1.5 text-xs font-medium text-white">
+                    {t("settings.backupCta")}
+                  </button>
+                </div>
+              </div>
+            )}
             <button type="button" onClick={exportJson} className="flex w-full items-center gap-2 rounded-btn border border-line bg-card px-3 py-2.5 text-sm text-text hover:border-primary">
               <Download size={16} /> {t("settings.exportJson")}
             </button>

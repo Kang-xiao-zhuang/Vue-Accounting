@@ -18,7 +18,7 @@ export function BottomNav() {
   const pathname = usePathname();
   const { t } = useT();
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-app border-t border-line bg-bg">
+    <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-app border-t border-line bg-bg pb-[env(safe-area-inset-bottom)]">
       <div className="flex items-stretch justify-around px-2 py-2">
         {TABS.map(({ href, key, Icon }) => {
           const active = pathname === href;

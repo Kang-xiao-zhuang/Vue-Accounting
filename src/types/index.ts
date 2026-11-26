@@ -64,11 +64,14 @@ export const DEFAULT_SETTINGS: AppSettings = {
 export interface UIPrefs {
   habitView: HabitView;
   todoLayout: "list" | "ring";
+  /** 记录页上次停留的标签，避免每次从别处返回都跳回列表 */
+  ledgerTab?: "records" | "stats";
 }
 
 export const DEFAULT_PREFS: UIPrefs = {
   habitView: "grid",
   todoLayout: "list",
+  ledgerTab: "records",
 };
 
 /** ===== 阶段二：习惯打卡 ===== */

@@ -16,7 +16,7 @@ interface RecordListProps {
   /** 关闭按日期分组（历史页分页后分组会被切断）。 */
   group?: boolean;
   onEdit: (record: LedgerRecord) => void;
-  onRemove: (id: string) => void;
+  onRemove: (record: LedgerRecord) => void;
 }
 
 export function RecordList({ records, emptyText, group = true, onEdit, onRemove }: RecordListProps) {
@@ -68,7 +68,7 @@ export function RecordList({ records, emptyText, group = true, onEdit, onRemove 
             </button>
             <button
               type="button"
-              onClick={() => { setOpenId(null); onRemove(r.id); }}
+              onClick={() => { setOpenId(null); onRemove(r); }}
               className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-btn border border-line bg-card text-xs text-expense"
             >
               <Trash2 size={14} /> {t("common.delete")}

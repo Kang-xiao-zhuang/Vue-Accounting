@@ -11,6 +11,8 @@ export const viewport: Viewport = {
   themeColor: "#0F1320",
   width: "device-width",
   initialScale: 1,
+  // 覆盖到刘海/手势条区域，底部导航再用 env(safe-area-inset-bottom) 让位，否则会被系统栏压住。
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

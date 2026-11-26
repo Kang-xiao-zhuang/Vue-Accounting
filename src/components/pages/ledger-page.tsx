@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { Download, Search, SlidersHorizontal } from "lucide-react";
@@ -10,6 +10,7 @@ import { toast } from "@/lib/toast";
 import { toCsv, saveTextFile } from "@/lib/backup";
 import { cn } from "@/lib/cn";
 import { useRecordsStore } from "@/store/records.store";
+import { useSettingsStore } from "@/store/settings.store";
 import { filterByPeriod, totals } from "@/utils/stats";
 import { PeriodNav } from "@/components/common/period-nav";
 import { SummaryCards } from "@/components/common/summary-cards";
@@ -36,6 +37,11 @@ export function LedgerPage() {
   const period = useRecordsStore((s) => s.period);
   const anchor = useRecordsStore((s) => s.anchor);
   const remove = useRecordsStore((s) => s.remove);
+  const restore = useRecordsStore((s) => s.restore);
+
+  const hydratedPrefs = useSettingsStore((s) => s.hydrated);
+  const savedTab = useSettingsStore((s) => s.prefs.ledgerTab);
+  const setPref = useSettingsStore((s) => s.setPref);
 
   const [tab, setTab] = useState<LedgerTab>("records");
   const [query, setQuery] = useState("");
@@ -44,11 +50,22 @@ export function LedgerPage() {
   const [showFilter, setShowFilter] = useState(false);
   const [sheet, setSheet] = useState<{ open: boolean; editing: LedgerRecord | null }>({ open: false, editing: null });
 
+  // 上次停留在哪个标签跟着偏好走：首帧是默认值，hydrate 完成后同步一次。
+  useEffect(() => {
+    if (hydratedPrefs && savedTab) setTab(savedTab);
+  }, [hydratedPrefs, savedTab]);
+
+  const changeTab = (next: LedgerTab) => {
+    setTab(next);
+    setPref({ ledgerTab: next });
+  };
+
   const periodRecords = useMemo(() => filterByPeriod(records, period, anchor), [records, period, anchor]);
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return periodRecords.filter((r) => {
-      if (q && !`${r.note} ${r.category}`.toLowerCase().includes(q)) return false;
+      // 金额（含小数）与日期也能搜，方便「找那笔 128」「看 11-20 记了什么」。
+      if (q && !`${r.note} ${r.category} ${r.amount} ${r.date}`.toLowerCase().includes(q)) return false;
       if (min && r.amount < Number(min)) return false;
       if (max && r.amount > Number(max)) return false;
       return true;
@@ -67,16 +84,18 @@ export function LedgerPage() {
   return (
     <main className="px-4 pt-4">
       <header className="sticky top-0 z-20 -mx-4 mb-3 flex items-center gap-2 border-b border-line bg-bg/95 px-4 py-2 backdrop-blur">
-        <div className="flex rounded-pill border border-line bg-card p-0.5" role="tablist">
+        <div className="flex rounded-pill border border-line bg-card p-0.5" role="tablist" aria-label={t("rec.title")}>
           {(["records", "stats"] as const).map((key) => (
             <button
               key={key}
               type="button"
               role="tab"
+              id={`ledger-tab-${key}`}
               aria-selected={tab === key}
-              onClick={() => setTab(key)}
+              aria-controls="ledger-panel"
+              onClick={() => changeTab(key)}
               className={cn(
-                "rounded-pill px-3.5 py-1.5 text-sm font-medium transition-colors",
+                "h-10 rounded-pill px-4 text-sm font-medium transition-colors",
                 tab === key ? "bg-primary text-white" : "text-muted hover:text-text",
               )}
             >
@@ -91,9 +110,10 @@ export function LedgerPage() {
               <button
                 type="button"
                 aria-label={t("rec.filterAmount")}
+                aria-pressed={showFilter}
                 onClick={() => setShowFilter((v) => !v)}
                 className={cn(
-                  "flex h-8 w-8 items-center justify-center rounded-btn border",
+                  "flex h-10 w-10 items-center justify-center rounded-btn border",
                   showFilter ? "border-primary bg-primary/10 text-primary" : "border-line bg-card text-muted",
                 )}
               >
@@ -102,13 +122,13 @@ export function LedgerPage() {
               <button
                 type="button"
                 onClick={exportCsv}
-                className="flex h-8 items-center gap-1 rounded-btn border border-line bg-card px-2.5 text-xs text-muted"
+                className="flex h-10 items-center gap-1 rounded-btn border border-line bg-card px-3 text-xs text-muted"
               >
                 <Download size={14} /> CSV
               </button>
             </>
           ) : (
-            <Link href="/budgets" className="rounded-pill border border-line bg-card px-3 py-1.5 text-xs text-primary">
+            <Link href="/budgets" className="flex h-10 items-center rounded-pill border border-line bg-card px-3 text-xs text-primary">
               {t("stats.budgets")}
             </Link>
           )}
@@ -130,6 +150,7 @@ export function LedgerPage() {
           <PeriodNav />
           <SummaryCards totals={totals(periodRecords)} />
 
+          <div role="tabpanel" id="ledger-panel" aria-labelledby={`ledger-tab-${tab}`}>
           {tab === "records" ? (
             <>
               <div className="mb-3 space-y-2">
@@ -145,9 +166,9 @@ export function LedgerPage() {
                 {showFilter && (
                   <div className="flex items-center gap-2 rounded-btn border border-line bg-card p-2">
                     <span className="shrink-0 text-xs text-muted">{t("rec.filterAmount")}</span>
-                    <input type="number" value={min} onChange={(e) => setMin(e.target.value)} placeholder={t("rec.min")} className="w-full rounded-btn bg-input px-2 py-1.5 text-xs text-text outline-none" />
-                    <input type="number" value={max} onChange={(e) => setMax(e.target.value)} placeholder={t("rec.max")} className="w-full rounded-btn bg-input px-2 py-1.5 text-xs text-text outline-none" />
-                    <button type="button" onClick={() => { setMin(""); setMax(""); setQuery(""); }} className="shrink-0 text-xs text-primary">
+                    <input type="number" value={min} onChange={(e) => setMin(e.target.value)} placeholder={t("rec.min")} className="w-full rounded-btn bg-input px-2 py-2 text-xs text-text outline-none" />
+                    <input type="number" value={max} onChange={(e) => setMax(e.target.value)} placeholder={t("rec.max")} className="w-full rounded-btn bg-input px-2 py-2 text-xs text-text outline-none" />
+                    <button type="button" onClick={() => { setMin(""); setMax(""); setQuery(""); }} className="h-9 shrink-0 px-1 text-xs text-primary">
                       {t("rec.clear")}
                     </button>
                   </div>
@@ -161,10 +182,13 @@ export function LedgerPage() {
                   records={filtered}
                   emptyText={hasFilter ? t("rec.emptyFiltered") : t("rec.empty")}
                   onEdit={(r) => setSheet({ open: true, editing: r })}
-                  onRemove={(id) => {
+                  onRemove={(record) => {
                     if (!window.confirm(t("history.deleteConfirm"))) return;
-                    remove(id);
-                    toast(t("toast.deleted"));
+                    remove(record.id);
+                    toast(t("toast.deleted"), {
+                      actionLabel: t("common.undo"),
+                      onAction: () => restore(record),
+                    });
                   }}
                 />
               )}
@@ -172,6 +196,7 @@ export function LedgerPage() {
           ) : (
             <StatsPanel periodRecords={periodRecords} allRecords={records} />
           )}
+          </div>
         </>
       )}
 

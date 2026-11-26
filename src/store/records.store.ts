@@ -18,6 +18,8 @@ interface RecordsState {
   create: (input: RecordInput) => LedgerRecord;
   update: (id: string, patch: Partial<RecordInput>) => void;
   remove: (id: string) => void;
+  /** 删除后撤销：按原 id / createdAt 放回，避免撤销产生一条新记录。 */
+  restore: (record: LedgerRecord) => void;
   clear: () => void;
   replaceAll: (records: LedgerRecord[]) => void;
 }
@@ -78,6 +80,12 @@ export const useRecordsStore = create<RecordsState>((set, get) => ({
 
   remove: (id) => {
     const records = get().records.filter((r) => r.id !== id);
+    persist(records);
+    set({ records });
+  },
+
+  restore: (record) => {
+    const records = sortRecords([record, ...get().records.filter((r) => r.id !== record.id)]);
     persist(records);
     set({ records });
   },

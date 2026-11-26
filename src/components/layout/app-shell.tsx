@@ -47,11 +47,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const showNav = NAV_ROUTES.includes(pathname);
 
   return (
-    <div className="relative mx-auto min-h-screen max-w-app bg-bg">
+    <div className="relative mx-auto min-h-[100dvh] max-w-app bg-bg">
       <PwaRegister />
       <Toast />
       <StorageWarning />
-      <div className={showNav ? "pb-24" : "pb-10"}>{children}</div>
+      {/* 有底部导航时给内容留出「导航高度 + 系统手势条」的空白 */}
+      <div className={showNav ? "pb-[calc(6rem+env(safe-area-inset-bottom))]" : "pb-10"}>{children}</div>
       {showNav && <BottomNav />}
     </div>
   );

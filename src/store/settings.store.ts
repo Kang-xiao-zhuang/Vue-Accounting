@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { DEFAULT_PREFS, DEFAULT_SETTINGS, type AppSettings, type CustomTheme, type Locale, type ThemeKey, type UIPrefs } from "@/types";
 import { applyTheme } from "@/lib/theme";
+import { setMoneyLocale } from "@/lib/money";
 import { STORAGE_KEYS, readJSON, writeJSON } from "@/lib/storage";
 
 interface SettingsState {
@@ -16,9 +17,17 @@ interface SettingsState {
   replaceSettings: (settings: AppSettings) => void;
 }
 
+/** 语言同步到 <html lang> 与金额格式，供读屏、拼写检查与搜索引擎使用。 */
+const applyLocale = (locale: Locale): void => {
+  setMoneyLocale(locale);
+  if (typeof document === "undefined") return;
+  document.documentElement.lang = locale === "zh" ? "zh-CN" : "en";
+};
+
 const persist = (settings: AppSettings): void => {
   writeJSON(STORAGE_KEYS.settings, settings);
   applyTheme(settings.theme, settings.custom);
+  applyLocale(settings.locale);
 };
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
@@ -36,6 +45,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     };
     const storedPrefs = readJSON<Partial<UIPrefs>>(STORAGE_KEYS.prefs, {});
     applyTheme(settings.theme, settings.custom);
+    applyLocale(settings.locale);
     set({
       settings,
       prefs: { ...DEFAULT_PREFS, ...storedPrefs },

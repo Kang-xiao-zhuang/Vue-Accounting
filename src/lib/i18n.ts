@@ -20,6 +20,10 @@ const zh: Dict = {
   "rec.exportCsv": "导出 CSV", "rec.dailyNet": "当日净额",
   "rec.emptyTitle": "还没有任何记录", "rec.emptyHint": "所有数据只保存在本机，不需要注册账号。",
   "rec.emptyCta": "记第一笔",
+  "common.undo": "撤销",
+  "settings.backupNever": "还没有导出过备份：数据只在本机，换手机或清理浏览器数据就会丢。",
+  "settings.backupStale": "上次备份是 {d} 天前，建议再导出一份。",
+  "settings.backupCta": "立即备份",
 
   "add.title": "记一笔", "add.hint": "点一个分类开始录入{type}", "add.frequent": "常用分类",
 
@@ -80,6 +84,7 @@ const zh: Dict = {
   "habit.goalNone": "不限", "habit.none": "还没有习惯，点 ＋ 创建一个，开始你的连续打卡！",
   "habit.viewGrid": "网格", "habit.viewRing": "圆环", "habit.viewWeek": "本周", "habit.viewMonth": "月历",
   "habit.best": "最佳", "habit.day": "天", "habit.days": "天", "habit.ringSub": "{n}/30 天",
+  "habit.gridAria": "近一年打卡热力图，共 {n} 次打卡；点击格子可切换某天",
   "habit.doneFab": "打卡", "habit.checked": "今日已打卡（点击撤销）", "habit.checkin": "今日打卡",
   "habit.confirmDelete": "删除习惯「{name}」及其全部打卡记录？", "habit.deleted": "习惯已删除",
 
@@ -118,6 +123,10 @@ const en: Dict = {
   "rec.exportCsv": "Export CSV", "rec.dailyNet": "Daily net",
   "rec.emptyTitle": "No records yet", "rec.emptyHint": "Everything stays on this device — no account needed.",
   "rec.emptyCta": "Add your first record",
+  "common.undo": "Undo",
+  "settings.backupNever": "No backup yet: data lives only on this device and is lost if you switch phones or clear browser data.",
+  "settings.backupStale": "Last backup was {d} days ago - export a fresh one.",
+  "settings.backupCta": "Back up now",
 
   "add.title": "Add record", "add.hint": "Tap a category to add an {type}", "add.frequent": "Frequent",
 
@@ -178,6 +187,7 @@ const en: Dict = {
   "habit.goalNone": "None", "habit.none": "No habits yet. Tap ＋ to create one and start your streak!",
   "habit.viewGrid": "Grid", "habit.viewRing": "Ring", "habit.viewWeek": "Week", "habit.viewMonth": "Month",
   "habit.best": "best", "habit.day": "day", "habit.days": "days", "habit.ringSub": "{n}/30 days",
+  "habit.gridAria": "Last 12 months of check-ins ({n} total). Tap a cell to toggle a day.",
   "habit.doneFab": "done!", "habit.checked": "Checked in today (tap to undo)", "habit.checkin": "Check in today",
   "habit.confirmDelete": "Delete habit \"{name}\" and all its check-ins?", "habit.deleted": "Habit deleted",
 

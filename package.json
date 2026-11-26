@@ -16,23 +16,16 @@
   },
   "dependencies": {
     "@capacitor/android": "^6.2.3",
-    "@capacitor/app": "^6.0.3",
     "@capacitor/core": "^6.2.3",
     "@capacitor/filesystem": "^6.0.4",
-    "@capacitor/haptics": "^6.0.3",
     "@capacitor/share": "^6.0.4",
-    "@capacitor/status-bar": "^6.0.3",
-    "@hookform/resolvers": "^3.10.0",
     "clsx": "^2.1.1",
-    "framer-motion": "^11.15.0",
     "lucide-react": "^0.469.0",
     "next": "15.5.29",
     "react": "19.0.0",
     "react-dom": "19.0.0",
-    "react-hook-form": "^7.54.2",
     "recharts": "^2.15.0",
     "tailwind-merge": "^2.6.0",
-    "zod": "^3.24.1",
     "zustand": "^5.0.3"
   },
   "devDependencies": {

@@ -25,8 +25,9 @@ export const THEMES: Record<Exclude<ThemeKey, "custom" | "auto">, ThemeVars> = {
   dark: DARK_BASE,
   light: {
     pageBg: "#dde2ee", bg: "#f4f6fb", card: "#ffffff", input: "#eef1f8",
-    primary: "#4f6ef7", primaryDark: "#3a55d9", income: "#1f9d6b", expense: "#e25563",
-    text: "#2a2f45", muted: "#7a8099", border: "#e2e6f0",
+    // 浅色底上的文字色按 WCAG AA（>=4.5:1）压深过，原始值只有 3.2~4.0。
+    primary: "#4059d8", primaryDark: "#3149bd", income: "#127a54", expense: "#bf3c4a",
+    text: "#2a2f45", muted: "#5d637c", border: "#e2e6f0",
   },
   duotone: {
     pageBg: "#150a26", bg: "#241043", card: "#32195c", input: "#3d2270",
@@ -50,8 +51,8 @@ export const THEMES: Record<Exclude<ThemeKey, "custom" | "auto">, ThemeVars> = {
   },
   rose: {
     pageBg: "#f6e9ee", bg: "#fdf5f7", card: "#ffffff", input: "#f8e9ef",
-    primary: "#e6568c", primaryDark: "#cf3f75", income: "#1f9d6b", expense: "#e2556a",
-    text: "#3a2430", muted: "#9b7a88", border: "#efd8e1",
+    primary: "#b83468", primaryDark: "#a02a5b", income: "#127a54", expense: "#ba3849",
+    text: "#3a2430", muted: "#7d6270", border: "#efd8e1",
   },
   slate: {
     pageBg: "#0a0b0e", bg: "#16181d", card: "#1e2128", input: "#282c34",
@@ -106,4 +107,7 @@ export function applyTheme(key: ThemeKey, custom: CustomTheme): void {
     : key;
   root.setAttribute("data-theme", base === "light" ? "light" : "dark");
   root.setAttribute("data-theme-key", key);
+
+  // 浏览器/系统栏配色跟随当前主题，否则浅色主题下顶栏仍是深色。
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", vars.bg);
 }

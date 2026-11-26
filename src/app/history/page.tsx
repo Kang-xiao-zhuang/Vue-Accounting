@@ -18,6 +18,7 @@ export default function HistoryPage() {
   const { t, locale } = useT();
   const records = useRecordsStore((s) => s.records);
   const remove = useRecordsStore((s) => s.remove);
+  const restore = useRecordsStore((s) => s.restore);
 
   const [q, setQ] = useState("");
   const [type, setType] = useState<"all" | RecordType>("all");
@@ -32,7 +33,7 @@ export default function HistoryPage() {
       if (type !== "all" && r.type !== type) return false;
       if (from && r.date < from) return false;
       if (to && r.date > to) return false;
-      if (needle && !r.note.toLowerCase().includes(needle) && !categoryLabel(r.category, locale).toLowerCase().includes(needle) && !r.category.toLowerCase().includes(needle)) return false;
+      if (needle && !r.note.toLowerCase().includes(needle) && !categoryLabel(r.category, locale).toLowerCase().includes(needle) && !r.category.toLowerCase().includes(needle) && !String(r.amount).includes(needle) && !r.date.includes(needle)) return false;
       return true;
     });
   }, [records, q, type, from, to, locale]);
@@ -45,10 +46,10 @@ export default function HistoryPage() {
   const onFilter = (fn: () => void) => { fn(); setPage(1); };
   const go = (p: number) => setPage(Math.min(pages, Math.max(1, p)));
   const clearFilter = () => onFilter(() => { setQ(""); setType("all"); setFrom(""); setTo(""); });
-  const onRemove = (id: string) => {
+  const onRemove = (record: LedgerRecord) => {
     if (!window.confirm(t("history.deleteConfirm"))) return;
-    remove(id);
-    toast(t("toast.deleted"));
+    remove(record.id);
+    toast(t("toast.deleted"), { actionLabel: t("common.undo"), onAction: () => restore(record) });
     if (items.length === 1 && current > 1) setPage(current - 1);
   };
 
@@ -77,7 +78,7 @@ export default function HistoryPage() {
               type="button"
               onClick={() => onFilter(() => setType(v))}
               className={cn(
-                "rounded-btn py-1.5 text-xs",
+                "h-10 rounded-btn text-xs",
                 type === v ? "bg-card font-medium text-text" : "text-muted",
               )}
             >

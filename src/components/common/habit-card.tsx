@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import type { Habit, HabitView } from "@/types";
 import { useT } from "@/lib/i18n";
+import { useSettingsStore } from "@/store/settings.store";
 import { cn } from "@/lib/cn";
 import { fmt } from "@/utils/date";
 import { currentStreak, lastNDays, longestStreak, monthAnchor, monthGrid, weekAnchor, weeklyDone } from "@/utils/habits";
@@ -24,14 +25,21 @@ interface HabitCardProps {
 const DOW_ZH = ["一", "二", "三", "四", "五", "六", "日"];
 const DOW_EN = ["M", "T", "W", "T", "F", "S", "S"];
 
+/** 热力图几何：53 列 × 7 行，画在 canvas 上（371 个按钮的 DOM 方案在低端安卓上会卡）。 */
+const CELL = 16;
+const GAP = 4;
+const PITCH = CELL + GAP;
+const COLS = 53;
+const ROWS = 7;
+
 /** 53 周热力图，按列（周）渲染，每列 7 格。 */
 function gridWeeks(checkins: Set<string>, today: string) {
   const anchor = weekAnchor(today, 0);
   anchor.setDate(anchor.getDate() - 52 * 7);
   const weeks: { date: string; checked: boolean; future: boolean }[][] = [];
-  for (let w = 0; w < 53; w++) {
+  for (let w = 0; w < COLS; w++) {
     const col = [];
-    for (let d = 0; d < 7; d++) {
+    for (let d = 0; d < ROWS; d++) {
       const date = fmt(anchor);
       col.push({ date, checked: checkins.has(date), future: date > today });
       anchor.setDate(anchor.getDate() + 1);
@@ -51,7 +59,7 @@ export function HabitCard({ habit, today, view, offset, ringEnd, locale, onToggl
   const checkedToday = checkins.has(today);
   const dow = locale === "zh" ? DOW_ZH : DOW_EN;
 
-  const ringDays = lastNDays(30, ringEnd);
+  const ringDays = view === "ring" ? lastNDays(30, ringEnd) : [];
   const ringDone = ringDays.filter((d) => checkins.has(d)).length;
   const ringPct = Math.round((ringDone / 30) * 100);
   const RING_C = 2 * Math.PI * 54;
@@ -72,7 +80,9 @@ export function HabitCard({ habit, today, view, offset, ringEnd, locale, onToggl
     return () => cancelAnimationFrame(id);
   }, [view]);
 
+  // 三种视图只有一种会渲染，只算当前视图的数据（网格 371 格 × N 张卡片，全算会明显拖慢切页）。
   const weekDates = useMemo(() => {
+    if (view !== "week") return [];
     const start = weekAnchor(today, offset);
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date(start);
@@ -80,15 +90,84 @@ export function HabitCard({ habit, today, view, offset, ringEnd, locale, onToggl
       const date = fmt(d);
       return { date, checked: checkins.has(date), future: date > today, today: date === today, dayNum: d.getDate(), label: dow[i] };
     });
-  }, [today, offset, checkins, dow]);
+  }, [view, today, offset, checkins, dow]);
 
   const monthKey = monthAnchor(today, offset);
   const [year, mon] = monthKey.split("-").map(Number);
-  const cells = useMemo(() => monthGrid(year, mon - 1).map((date) => (
-    date ? { date, day: Number(date.slice(-2)), checked: checkins.has(date), future: date > today, today: date === today } : null
-  )), [year, mon, checkins, today]);
+  const cells = useMemo(() => {
+    if (view !== "month") return [];
+    return monthGrid(year, mon - 1).map((date) => (
+      date ? { date, day: Number(date.slice(-2)), checked: checkins.has(date), future: date > today, today: date === today } : null
+    ));
+  }, [view, year, mon, checkins, today]);
 
-  const weeks = useMemo(() => gridWeeks(checkins, today), [checkins, today]);
+  const weeks = useMemo(() => (view === "grid" ? gridWeeks(checkins, today) : []), [view, checkins, today]);
+
+  /**
+   * 热力图用 canvas 绘制：整张图只有 1 个 DOM 节点，点击时按坐标反算日期。
+   * 颜色取自 CSS 变量，切换主题时重绘。
+   */
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const themeKey = useSettingsStore((s) => s.settings.theme);
+  const themeCustom = useSettingsStore((s) => s.settings.custom);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || view !== "grid") return;
+    const cssW = COLS * PITCH;
+    const cssH = ROWS * PITCH;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cssW, cssH);
+
+    const vars = getComputedStyle(document.documentElement);
+    const emptyColor = vars.getPropertyValue("--input").trim() || "#232a40";
+    const borderColor = vars.getPropertyValue("--border").trim() || "#2c3450";
+    // 旧版 WebView 没有 roundRect，退化为直角方块，不影响点击。
+    const hasRoundRect = typeof (ctx as CanvasRenderingContext2D & { roundRect?: unknown }).roundRect === "function";
+    const box = (x: number, y: number) => {
+      ctx.beginPath();
+      if (hasRoundRect) ctx.roundRect(x, y, CELL, CELL, 4);
+      else ctx.rect(x, y, CELL, CELL);
+    };
+
+    weeks.forEach((col, ci) => {
+      col.forEach((cell, ri) => {
+        const x = ci * PITCH;
+        const y = ri * PITCH;
+        ctx.globalAlpha = cell.future ? 0.25 : 1;
+        box(x, y);
+        if (cell.checked) {
+          ctx.fillStyle = habit.color;
+          ctx.fill();
+        } else {
+          ctx.fillStyle = emptyColor;
+          ctx.fill();
+          ctx.strokeStyle = borderColor;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      });
+    });
+    ctx.globalAlpha = 1;
+  }, [view, weeks, habit.color, themeKey, themeCustom]);
+
+  const onGridClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    if (!rect.width) return;
+    // 画布可能被 CSS 缩放（窄屏 / 浏览器缩放），按比例换算回画布坐标。
+    const scale = (COLS * PITCH) / rect.width;
+    const ci = Math.floor(((e.clientX - rect.left) * scale) / PITCH);
+    const ri = Math.floor(((e.clientY - rect.top) * scale) / PITCH);
+    const cell = weeks[ci]?.[ri];
+    if (!cell || cell.future) return;
+    onToggle(cell.date);
+  }, [weeks, onToggle]);
+
   const monthTitle = locale === "zh" ? `${year} 年 ${mon} 月` : new Date(year, mon - 1, 1).toLocaleDateString("en-US", { year: "numeric", month: "long" });
 
   return (
@@ -111,31 +190,17 @@ export function HabitCard({ habit, today, view, offset, ringEnd, locale, onToggl
         </div>
       </div>
 
-      {/* 网格热力图 */}
+      {/* 网格热力图（canvas：整块 1 个节点） */}
       {view === "grid" && (
         <div ref={gridRef} className="no-scrollbar -mx-1 overflow-x-auto px-1 pb-1">
-          <div className="flex w-max gap-[3px]">
-            {weeks.map((col, ci) => (
-              <div key={ci} className="flex flex-col gap-[3px]">
-                {col.map((cell) => (
-                  <button
-                    key={cell.date}
-                    type="button"
-                    disabled={cell.future}
-                    onClick={() => !cell.future && onToggle(cell.date)}
-                    title={cell.date}
-                    aria-label={cell.date}
-                    className={cn(
-                      "h-[11px] w-[11px] rounded-[3px] border border-line bg-input transition-colors",
-                      cell.checked && "border-transparent",
-                      cell.future && "opacity-25",
-                    )}
-                    style={cell.checked ? { backgroundColor: habit.color, borderColor: habit.color } : undefined}
-                  />
-                ))}
-              </div>
-            ))}
-          </div>
+          <canvas
+            ref={canvasRef}
+            onClick={onGridClick}
+            role="img"
+            aria-label={t("habit.gridAria", { n: total })}
+            className="block cursor-pointer"
+            style={{ width: COLS * PITCH, height: ROWS * PITCH }}
+          />
         </div>
       )}
 
