@@ -89,3 +89,18 @@ src/
 
 > 旧架构代码已打 git tag `legacy/vue-springboot`（指向 `5fddce2`），可用 `git show legacy/vue-springboot:<path>` 或 `git checkout legacy/vue-springboot` 回溯。
 > 历史 MySQL 数据按约定**不迁移**，新 App 从空数据开始。存储配额约 5MB，请定期导出备份。
+
+## 分支与发布
+
+- `dev2.0`：**开发分支**，日常改动都提交在这里。
+- `master`：**主分支**，内容与 `dev2.0` 保持一致，只做快进（`git push github dev2.0:master`），不单独提交。
+- `dev1.0`：v1.x（Spring Boot + Vue）历史分支，只读保留。
+
+发布一个版本：
+
+1. 改版本号：`package.json` 的 `version`，以及 `android/app/build.gradle` 的 `versionCode` / `versionName`（两处必须同步，`versionCode` 每次加 1）。
+2. `npm run android:apk:release` 产出 `android/app/build/outputs/apk/release/app-release.apk`（正式签名）。
+3. 提交到 `dev2.0` → 快进 `master` → 打 tag `vX.Y.Z` 并推送。
+4. `gh release create vX.Y.Z <apk> --title ... --notes-file ...` 把 APK 作为 Release 附件上传（**APK 不入库**，避免仓库随版本膨胀）。
+
+当前版本：[v2.0.0](https://github.com/Kang-xiao-zhuang/Vue-Accounting/releases/tag/v2.0.0)（`versionCode 2` / `versionName 2.0.0`）。
