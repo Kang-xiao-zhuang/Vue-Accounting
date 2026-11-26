@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 默认值与 lib/theme.ts 的 dark 主题一致，避免 hydrate 前闪白。运行时由主题覆盖。 */
+:root {
+  --page-bg: #05070d;
+  --bg: #0f1320;
+  --card: #1a1f30;
+  --input: #232a40;
+  --primary: #6d86ff;
+  --primary-dark: #5670f0;
+  --income: #3dd6a3;
+  --expense: #ff6b7a;
+  --text: #e8ebf5;
+  --muted: #8a90a6;
+  --border: #2c3450;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  background-color: var(--page-bg);
+  color: var(--text);
+  font-family: Inter, "Noto Sans SC", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+input,
+select,
+button {
+  font-family: inherit;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+@keyframes sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.animate-sheet { animation: sheet-up 0.22s ease-out; }
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fade { animation: fade-in 0.18s ease-out; }
