@@ -16,10 +16,27 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // 正式签名：android/keystore.properties 存在时启用（该文件与 .jks 都不入库）。
+    def keystorePropsFile = rootProject.file("keystore.properties")
+    def hasReleaseKey = keystorePropsFile.exists()
+    if (hasReleaseKey) {
+        def keystoreProps = new Properties()
+        keystorePropsFile.withInputStream { keystoreProps.load(it) }
+        signingConfigs {
+            release {
+                storeFile file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (hasReleaseKey) signingConfig signingConfigs.release
         }
     }
 }

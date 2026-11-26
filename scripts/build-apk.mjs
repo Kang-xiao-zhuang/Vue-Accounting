@@ -1,5 +1,5 @@
 /**
- * 构建 Android Debug APK。
+ * 构建 Android APK：默认 debug，加 --release 出正式签名包。
  *
  * Capacitor 6 / AGP 8.x 需要 JDK 17；本机默认 java 可能是旧版本，
  * 因此此处按优先级选择 JAVA_HOME：环境变量 > 常见安装路径。
@@ -11,6 +11,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = fileURLToPath(new URL("../android", import.meta.url));
+const RELEASE = process.argv.includes("--release");
 
 const pick = (envValue, candidates) => {
   if (envValue && existsSync(envValue)) return envValue;
@@ -66,10 +67,19 @@ if (!existsSync(javaExe) || !existsSync(wrapperJar)) {
 console.log(`JAVA_HOME   = ${javaHome}`);
 console.log(`ANDROID_HOME= ${androidHome}`);
 console.log(`JAVA        = ${javaExe}`);
+if (RELEASE && !existsSync(join(ROOT, "keystore.properties"))) {
+  console.warn("提示：未找到 android/keystore.properties，release 包将是无签名的（无法直接安装）。");
+}
+
 const result = spawnSync(javaExe, [
   "-classpath", wrapperJar,
   "org.gradle.wrapper.GradleWrapperMain",
-  "assembleDebug", "--no-daemon",
+  RELEASE ? "assembleRelease" : "assembleDebug", "--no-daemon",
 ], { cwd: ROOT, env, stdio: "inherit" });
 if (result.status !== 0) process.exit(result.status ?? 1);
-console.log("APK: android/app/build/outputs/apk/debug/app-debug.apk");
+
+const apkDir = join(ROOT, "app", "build", "outputs", "apk", RELEASE ? "release" : "debug");
+const apkName = RELEASE
+  ? (existsSync(join(apkDir, "app-release.apk")) ? "app-release.apk" : "app-release-unsigned.apk")
+  : "app-debug.apk";
+console.log(`APK: ${join(apkDir, apkName)}`);

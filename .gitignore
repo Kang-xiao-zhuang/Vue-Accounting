@@ -16,6 +16,10 @@ android/.gradle/
 android/build/
 android/app/build/
 android/local.properties
+# 正式签名材料不入库
+android/keystore.properties
+android/app/*.jks
+android/app/*.keystore
 android/capacitor-cordova-android-plugins/
 
 # ---- IDE ----

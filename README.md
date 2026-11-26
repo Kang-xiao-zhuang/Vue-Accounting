@@ -25,13 +25,28 @@ npm test          # Vitest 单元测试
 也可显式设置 `JAVA_HOME` / `ANDROID_HOME` 覆盖。
 
 ```bash
-npx cap add android    # 首次生成 android/ 工程（已完成，android/ 已入库）
-npm run android:apk    # next build + cap sync + assembleDebug（一键产出 APK）
+npx cap add android          # 首次生成 android/ 工程（已完成，android/ 已入库）
+npm run android:apk          # next build + cap sync + assembleDebug
+npm run android:apk:release  # 同上，但出 assembleRelease（正式签名）
 ```
 
-产物在 `android/app/build/outputs/apk/debug/app-debug.apk`（debug 签名）。
+产物：debug 在 `android/app/build/outputs/apk/debug/app-debug.apk`，
+release 在 `android/app/build/outputs/apk/release/app-release.apk`（约 3.5 MB，比 debug 小 0.8 MB）。
+
+正式签名靠 `android/keystore.properties`（不入库）：
+
+```properties
+storeFile=release.jks
+storePassword=***
+keyAlias=bookkeeping
+keyPassword=***
+```
+
+没有该文件时 Gradle 仍能出包，但产物是 `app-release-unsigned.apk`，无法直接安装。
+本机已生成 `android/app/release.jks`（别名 `bookkeeping`，有效期 10000 天），密码见 `keystore.properties`；
+**换机器或重装前务必备份这两个文件，丢了就无法覆盖升级已安装的 App。**
+
 `capacitor.config.ts` 的 `webDir` 指向 `out`，包名 `com.kang.bookkeeping`，minSdk 22 / targetSdk 34。
-发布前需改用正式签名密钥，debug APK 仅用于测试。
 
 ## 目录
 
